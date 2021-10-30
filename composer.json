@@ -1,0 +1,56 @@
+{
+    "name": "zencode/lifter-multitenancy",
+    "description": "A Lifter LMS add-on for multi tenancy",
+    "type": "wordpress-plugin",
+    "authors": [
+        {
+            "name": "Mohan Raj",
+            "email": "praem1990@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "illuminate/support": "^5.0"
+    },
+    "autoload": {
+        "files": [
+            "src/wp-fluent/autoload.php"
+        ],
+    	"psr-4": {
+    		"Lifter\\MT\\": "src/"
+    	}
+    },
+    "require-dev": {
+        "woocommerce/woocommerce-sniffs": "^0.1.0",
+        "woocommerce/woocommerce-git-hooks": "^1.0",
+        "phpunit/phpunit": "^7.5",
+        "johnpbloch/wordpress-core": "^5.8"
+    },
+    "scripts": {
+        "pre-update-cmd": [
+          "WooCommerce\\GitHooks\\Hooks::preHooks"
+        ],
+        "pre-install-cmd": [
+          "WooCommerce\\GitHooks\\Hooks::preHooks"
+        ],
+        "post-install-cmd": [
+          "WooCommerce\\GitHooks\\Hooks::postHooks"
+        ],
+        "post-update-cmd": [
+          "WooCommerce\\GitHooks\\Hooks::postHooks"
+        ],
+        "phpcs": [
+          "phpcs --warning-severity=0 -s --ignore-annotations --extensions=php,html ."
+        ],
+        "phpcbf": [
+          "phpcbf --warning-severity=0 -s --ignore-annotations --extensions=php,html ."
+         ]
+    },
+    "extra": {
+        "scripts-description": {
+          "test": "Run unit tests",
+          "phpcs": "Analyze code against the WordPress coding standards with PHP_CodeSniffer",
+          "phpcbf": "Fix coding standards warnings/errors automatically with PHP Code Beautifier"
+        }
+  }
+}
