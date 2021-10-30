@@ -9,14 +9,14 @@
  * Author URI:      https://github.com/praem90
  */
 
-if (! defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
 require_once __DIR__ . '/vendor/autoload.php';
 
 $liftermt = new \Lifter\MT\LifterMt();
 
-$liftermt->with_basename(plugin_basename(__FILE__));
+$liftermt->with_basename( plugin_basename( __FILE__ ) );
 
 $liftermt->boot();
