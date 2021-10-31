@@ -1,4 +1,4 @@
-<table>
+<table class="table">
 	<tr>
 		<th><?php echo esc_attr__( 'School ID', 'llms-school' ) . ' (' . esc_attr__( 'System', 'llms-school' ) . ')' ; ?></th>
 		<td><?php echo esc_html( $school->ID ); ?></td>

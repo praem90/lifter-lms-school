@@ -25,6 +25,7 @@ class LifterMt {
 
 		add_action( 'init', array( $this, 'load_language' ) );
 		add_action( 'init', array( $this, 'enqueue_scripts' ) );
+		add_action( 'init', array( $this, 'enque_acf_scripts' ) );
 		add_action( 'init', array( $this, 'register_routes' ) );
 		add_action( 'init', array( $this, 'register_schools_post_type' ) );
 
@@ -94,31 +95,19 @@ class LifterMt {
 	}
 
 	public function enque_acf_scripts() {
-		wp_enqueue_script( 'acf' );
-		wp_enqueue_script( 'acf-input' );
-		wp_enqueue_script( 'select2' );
-		do_action( 'acf/input/admin_enqueue_scripts' );
-		add_action(
-			'wp_footer',
-			function () {
-					acf_get_instance( 'ACF_Assets' )->print_footer_scripts();
-			}
-		);
 
 		add_action(
 			'llms_group_profile_after_settings',
 			function () {
 			global $wp;
 			$current_url = home_url( add_query_arg( array(), $wp->request ) );
-			echo acf_form(
+			acf_form_head();
+			acf_form(
 				[
-					'id'              => 'group_school_info',
-					'post_id'         => get_post()->id,
-					'field_groups'    => [ 'group_617d20b979be4' ],
-					'return'          => $current_url,
-					'form_attributes' => [
-						'action' => admin_url( 'post.php' ),
-					],
+					'id'           => 'group_school_info',
+					'post_id'      => get_post()->id,
+					'field_groups' => [ 'group_617d20b979be4' ],
+					'return'       => $current_url,
 				]
 			);
 			}
@@ -151,7 +140,7 @@ class LifterMt {
 		wp_enqueue_script( 'dataTable-bt', 'https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js' , array( 'dataTable' ), '1.11.3', true );
 		wp_enqueue_style( 'dataTable', 'https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css' , array(), '1.11.3' );
 		wp_enqueue_style( 'dataTable-bt', 'https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css' , array(), '1.11.3' );
-		wp_enqueue_style( 'bootstrap5', 'https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' , array(), '5.0.2' );
+		wp_enqueue_style( 'bootstrap5', 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css' , array(), '5.1.3' );
 
 		wp_enqueue_style( 'lifter-mt', plugins_url( 'resources/dist/base.css', dirname( __FILE__ ) ), array(), self::VERSION, true );
 		wp_enqueue_script( 'lifter-mt', plugins_url( 'resources/dist/admin.js', dirname( __FILE__ ) ), array( 'jquery' ), self::VERSION, true );
@@ -258,9 +247,10 @@ class LifterMt {
 
 		$args = array_merge(
 			array(
-				'page' => 'llms_school_details',
-				'post' => $post->ID,
-				'tab'  => 'details',
+				'page'      => 'llms_school_details',
+				'post'      => $post->ID,
+				'school_id' => $post->ID,
+				'tab'       => 'details',
 			),
 			$args
 		);

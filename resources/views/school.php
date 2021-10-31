@@ -2,10 +2,22 @@
 $tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'details';
 ?>
 <!-- Our admin page content should all be inside .wrap -->
-  <div class="wrap llms-school-wrapper">
+  <div class=" llms-school-wrapper">
+	<div class="container-fluid d-flex">
+		<h1><?php echo esc_html( $school->post_title ); ?></h1>
+		<div class="dropdown">
+  <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButtonSchool" data-bs-toggle="dropdown" aria-expanded="false">
+Reports
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButtonSchool">
+		<li><a class="dropdown-item" href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'page' => 'llms_course_export' ) ) ); ?>">Course</a></li>
+		<li><a class="dropdown-item" href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'page' => 'llms_quiz_export' ) ) ); ?>">Quiz</a></li>
+		<li><a class="dropdown-item" href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'page' => 'llms_assignment_export' ) ) ); ?>">Assignment</a></li>
+  </ul>
+</div>
+	</div>
 	<input id="llms_school_id" type="hidden" value="<?php echo $school->ID; ?>"/>
 	<!-- Print the page title -->
-	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 	<!-- Here are our tabs -->
 	<nav class="nav-tab-wrapper">
 		<a href="<?php echo esc_url( $this->get_school_details_url( $school ) ); ?>" class="nav-tab

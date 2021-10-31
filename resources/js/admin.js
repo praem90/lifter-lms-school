@@ -17,13 +17,13 @@ jQuery(function() {
 			{data: 'class', title: 'Class'},
 			{data: 'section', title: 'Section'},
 			{data: 'llms_membership', title: 'Groups'},
-			{data: 'llms_membership', title: 'Membership'},
+			/* {data: 'llms_membership', title: 'Membership'},
 			{data: 'llms_enrollment', title: 'Enrollment', render: () => 0},
 			{data: 'llms_completion', title: 'Completion', render: data => data || 'N/A'},
-			{data: 'llms_overall_progress', title: 'Overall Progress'},
-			{data: 'llms_overall_grade', title: 'Overall Grade'},
+			{data: 'llms_overall_progress', title: 'Overall Progress', render: data => data || 'N/A'},
+			{data: 'llms_overall_grade', title: 'Overall Grade', render: data => data || 'N/A'},
 			{data: 'user_registered', title: 'Registered Date'},
-			{data: 'llms_last_seen', title: 'Last seen', render: () => ''},
+			{data: 'llms_last_seen', title: 'Last seen', render: () => ''}, */
 			{data: 'action', title: 'Action', render: function (d, i, row) {
 				const url = new URL(location.href);
 
@@ -37,8 +37,8 @@ jQuery(function() {
 				const assignment_url = url.href;
 
 				const html = `<div class="dropdown">
-  	  	  	  	  	  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">Reports</button>
-  	  	  	  	  	  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+  	  	  	  	  	  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton${row.ID}" data-bs-toggle="dropdown" aria-expanded="false">Reports</button>
+  	  	  	  	  	  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton${row.ID}">
     					<li><a class="dropdown-item" href="${course_url}">Course</a></li>
     					<li><a class="dropdown-item" href="${quiz_url}">Quiz</a></li>
     					<li><a class="dropdown-item" href="${assignment_url}">Assignment</a></li>
@@ -78,21 +78,32 @@ jQuery(function() {
 			{data: 'section', title: 'Section', render: data => data || ''},
 			{data: 'students_count', title: 'Students Count'},
 			{data: 'action', title: 'Action', render: function (d, i, row) {
-				const url = new URL(lifter_mt.admin_url);
+				const url = new URL(location.href);
+
+				url.searchParams.set('group_id', row.ID)
+				url.searchParams.set('school_id', jQuery('input#llms_school_id').val());
 
 				url.searchParams.set('page', 'llms_course_export')
-				url.searchParams.set('group_id', row.ID)
+				const course_url = url.href;
+
+				url.searchParams.set('page', 'llms_students_export')
+				const student_url = url.href;
+
+				url.searchParams.set('page', 'llms_quiz_export');
+				const quiz_url = url.href;
+
+				url.searchParams.set('page', 'llms_assignment_export');
+				const assignment_url = url.href;
 
 				const html = `<div class="dropdown">
-  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-
-  </button>
-  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-    <li><a class="dropdown-item" href="${url.href}">Course</a></li>
-    <li><a class="dropdown-item" href="#">Another action</a></li>
-    <li><a class="dropdown-item" href="#">Something else here</a></li>
-  </ul>
-</div>`;
+  	  	  	  	  	  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton${row.ID}" data-bs-toggle="dropdown" aria-expanded="false">Reports</button>
+  	  	  	  	  	  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton${row.ID}">
+    					<li><a class="dropdown-item" href="${student_url}">Student</a></li>
+    					<li><a class="dropdown-item" href="${course_url}">Course</a></li>
+    					<li><a class="dropdown-item" href="${quiz_url}">Quiz</a></li>
+    					<li><a class="dropdown-item" href="${assignment_url}">Assignment</a></li>
+  	  	  	  	  	  </ul>
+					</div>`;
 				return html;
 			}},
 		],
@@ -122,5 +133,10 @@ jQuery(function() {
 		url.searchParams.append('section', jQuery(this).parents('.row').find('select').eq(1).val());
 
 		window.location = url;
+	});
+
+	jQuery(document).on('submit', '#group_school_info', function (e) {
+		e.preventDefault();
+		console.log(this);
 	});
 });
