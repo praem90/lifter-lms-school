@@ -27,20 +27,11 @@ class LifterMt {
 		add_action( 'init', array( $this, 'enqueue_scripts' ) );
 		add_action( 'init', array( $this, 'register_routes' ) );
 		add_action( 'init', array( $this, 'register_schools_post_type' ) );
+		add_action( 'load-page.php', array( $this, 'add_export_button' ) );
 
 		add_action( 'admin_menu', array( $this, 'add_admin_main_menu' ) );
 		add_action( 'post_row_actions', array( $this, 'register_school_row_actions' ) );
 		add_action( 'admin_init', array( $this, 'enqueue_admin_scripts' ) );
-
-		add_filter(
-			'set-screen-option',
-			function( $s, $o, $value ) {
-			return $value;
-			},
-			10,
-			3
-		);
-
 	}
 
 	public function abort_if_basic_version_is_installed() {
@@ -151,11 +142,18 @@ class LifterMt {
 	}
 
 	public function register_routes() {
+		add_action( 'wp_ajax_llms_school_get', array( Student::class, 'get_all' ) );
+		add_action( 'wp_ajax_llms_group_get', array( Group::class, 'get_all' ) );
 	}
 
 	public function enqueue_admin_scripts() {
 		wp_enqueue_script( 'dataTable', 'https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js' , array( 'jquery' ), '1.11.3', true );
-		wp_enqueue_style( 'dataTable', 'https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css' , array( 'jquery' ), '1.11.3' );
+		wp_enqueue_script( 'dataTable-bt', 'https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js' , array( 'dataTable' ), '1.11.3', true );
+		wp_enqueue_style( 'dataTable', 'https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css' , array(), '1.11.3' );
+		wp_enqueue_style( 'dataTable-bt', 'https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css' , array(), '1.11.3' );
+		wp_enqueue_style( 'bootstrap5', 'https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' , array(), '5.0.2' );
+
+		wp_enqueue_style( 'lifter-mt', plugins_url( 'resources/dist/base.css', dirname( __FILE__ ) ), array(), self::VERSION, true );
 		wp_enqueue_script( 'lifter-mt', plugins_url( 'resources/dist/admin.js', dirname( __FILE__ ) ), array( 'jquery' ), self::VERSION, true );
 	}
 
@@ -208,19 +206,19 @@ class LifterMt {
 			array( $this, 'show_school_details' )
 		);
 
-		add_action( 'load-' . $hook, array( $this, 'students_screen_options' ) );
+		$hook = add_submenu_page(
+			null,
+			__( 'Welcome', 'llms-school' ),
+			__( 'Welcome', 'llms-school' ),
+			'manage_options',
+			'llms_students_export',
+			array( Student::class, 'download' )
+		);
 
-	}
-
-	public function students_screen_options() {
-		$option = 'per_page';
-		$args   = [
-			'label'   => __( 'Students', 'llms-school' ),
-			'default' => 5,
-			'option'  => 'users_per_page',
-		];
-
-		add_screen_option( $option, $args );
+		if ( $_GET['page'] === 'llms_students_export' ) {
+			Student::download();
+			die;
+		}
 	}
 
 	public function register_school_row_actions( $actions, $post = false ) {

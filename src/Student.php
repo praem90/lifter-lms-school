@@ -4,13 +4,50 @@ namespace Lifter\MT;
 use Illuminate\Support\Arr;
 
 class Student {
+	public static function get_all() {
+		$self    = new self();
+		$filters = $_GET;
 
-	public function download() {
+		$data['data']            = $self->get( $filters );
+		$data['recordsFiltered'] = $self->count( $filters );
+		$data['recordsTotal']    = $self->count();
+
+		echo wp_json_encode( $data );
+		die;
+	}
+
+	public static function download() {
+		$self    = new self();
+		$filters = $_REQUEST;
+
+		$filters['start']  = 0;
+		$filters['length'] = 100;
+
+
+		ob_start();
+		$df = fopen( 'php://output', 'w' );
+		// fputcsv( $df, array_keys( reset( $array ) ) );
+		$data = $self->get( $filters );
+		while ( count( $data ) ) {
+			foreach ( $array as $row ) {
+				fputcsv( $df, $row );
+			}
+
+			$filters['start'] += $filters['length'];
+			$data              = $self->get( $filters );
+		}
+
+		fclose( $df );
+		return ob_get_clean();
 	}
 
 	public function get( $filters = array() ) {
 		$query    = $this->apply_filters( $filters );
 		$students = $query->get();
+
+		if ( count( $students ) === 0 ) {
+			return $students;
+		}
 
 		$this->get_meta( $students );
 		$this->get_school( $students );
@@ -23,7 +60,10 @@ class Student {
 		$query = $this->get_query();
 
 		if ( isset( $filters['school_id'] ) ) {
-			$meta_query = wpFluent()->table( 'usermeta' )->where( 'school', '=', $filters['school_id'] )->select( 'user_id' );
+			$meta_query = wpFluent()->table( 'usermeta' )
+						   ->where( 'meta_key', '=', 'school' )
+						   ->where( 'meta_value', '=', $filters['school_id'] )
+							->select( 'user_id' );
 			$query->where( wpFluent()->raw( 'ID in (' . $meta_query->getQuery()->getRawSql() . ')' ) );
 		}
 
@@ -42,11 +82,12 @@ class Student {
 			$query->where( wpFluent()->raw( 'ID in (' . $meta_query->getQuery()->getRawSql() . ')' ) );
 		}
 
-		$per_page     = Arr::get( $filters, 'per_page', 25 );
-		$current_page = Arr::get( $filters, 'page_no', 1 );
+		if ( isset( $filters['search']['value'] ) ) {
+			$query->where( 'display_name', 'like', '%' . $filters['search']['value'] . '%' );
+		}
 
-		$query->limit( $per_page );
-		$query->offset( ( $current_page - 1 ) * $per_page );
+		$query->limit( Arr::get( $filters, 'length', 25 ) );
+		$query->offset( Arr::get( $filters, 'start', 0 ) );
 
 		return $query;
 	}
