@@ -16,9 +16,55 @@ class Group {
 		die;
 	}
 
-	public function download() {
+	public static function download() {
+		$self    = new self();
+		$filters = $_REQUEST;
+
+		$filters['start']  = 0;
+		$filters['length'] = 100;
+
+		$fileName = 'llms_grups.csv';
+
+		header( 'Cache-Control: must-revalidate, post-check=0, pre-check=0' );
+		header( 'Content-Description: File Transfer' );
+		header( 'Content-type: text/csv' );
+		header( "Content-Disposition: attachment; filename={$fileName}" );
+		header( 'Expires: 0' );
+		header( 'Pragma: public' );
+
+		$df = fopen( 'php://output', 'w' );
+		// fputcsv( $df, array_keys( reset( $array ) ) );
+		$data = $self->get( $filters );
+		while ( count( $data ) ) {
+			foreach ( $data as $row ) {
+				fputcsv(
+					$df,
+					$self->map_item( $row )
+				);
+			}
+
+			$filters['start'] += $filters['length'];
+			$data              = $self->get( $filters );
+		}
+
+		fclose( $df );
+		exit;
 	}
 
+	public function map_item( $row ) {
+		$row = array(
+			'ID'             => $row['ID'],
+			'name'           => $row['post_title'],
+			'class'          => isset( $row['class'] ) ? $row['class'] : '',
+			'section'        => isset( $row['section'] ) ? $row['section'] : '',
+			'membership'     => ( isset( $row['membership'] ) ) ? $row['membership']->post_title : 'N/A',
+			'courses_count'  => $row['courses_count'],
+			'students_count' => $row['students_count'],
+			'date'           => $row['post_date'],
+		);
+
+		return $row;
+	}
 	public function get( $filters = array() ) {
 		$query  = $this->apply_filters( $filters );
 		$groups = $query->get();
@@ -38,7 +84,7 @@ class Group {
 	public function apply_filters( $filters = array() ) {
 		$query = $this->get_query();
 
-		if ( isset( $filters['school_id'] ) ) {
+		if ( Arr::get( $filters, 'school_id' ) ) {
 			$meta_query = wpFluent()->table( 'postmeta' )
 						   ->where( 'meta_key', '=', 'school' )
 						   ->where( 'meta_value', '=', $filters['school_id'] )
@@ -46,13 +92,19 @@ class Group {
 			$query->where( wpFluent()->raw( 'ID in (' . $meta_query->getQuery()->getRawSql() . ')' ) );
 		}
 
-		if ( isset( $filters['class'] ) ) {
-			$meta_query = wpFluent()->table( 'usermeta' )->where( 'class', '=', $filters['class'] )->select( 'user_id' );
+		if ( Arr::get( $filters, 'class' ) ) {
+			$meta_query = wpFluent()->table( 'postmeta' )
+						   ->where( 'meta_key', '=', 'class' )
+						   ->where( 'meta_value', '=', $filters['class'] )
+						   ->select( 'post_id' );
 			$query->where( wpFluent()->raw( 'ID in (' . $meta_query->getQuery()->getRawSql() . ')' ) );
 		}
 
-		if ( isset( $filters['section'] ) ) {
-			$meta_query = wpFluent()->table( 'usermeta' )->where( 'section', '=', $filters['section'] )->select( 'user_id' );
+		if ( Arr::get( $filters, 'section' ) ) {
+			$meta_query = wpFluent()->table( 'postmeta' )
+						   ->where( 'meta_key', '=', 'section' )
+						   ->where( 'meta_value', '=', $filters['section'] )
+						   ->select( 'post_id' );
 			$query->where( wpFluent()->raw( 'ID in (' . $meta_query->getQuery()->getRawSql() . ')' ) );
 		}
 

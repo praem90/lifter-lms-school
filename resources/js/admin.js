@@ -60,8 +60,23 @@ jQuery(function() {
 	jQuery(document).on('click', '#export_students', function () {
 		const url = new URL(jQuery(this).attr('href'));
 
+		url.searchParams.delete('post');
+		url.searchParams.append('post',jQuery('input#llms_school_id').val() );
 		url.searchParams.delete('page');
 		url.searchParams.append('page', 'llms_students_export');
+		url.searchParams.append('class', jQuery(this).parents('.row').find('select').eq(0).val());
+		url.searchParams.append('section', jQuery(this).parents('.row').find('select').eq(1).val());
+
+		window.location = url;
+	});
+
+	jQuery(document).on('click', '#export_groups', function () {
+		const url = new URL(jQuery(this).attr('href'));
+
+		url.searchParams.delete('post');
+		url.searchParams.append('post',jQuery('input#llms_school_id').val() );
+		url.searchParams.delete('page');
+		url.searchParams.append('page', 'llms_groups_export');
 		url.searchParams.append('class', jQuery(this).parents('.row').find('select').eq(0).val());
 		url.searchParams.append('section', jQuery(this).parents('.row').find('select').eq(1).val());
 

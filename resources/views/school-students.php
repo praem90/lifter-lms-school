@@ -25,7 +25,7 @@ acf_form(
 		<?php
 		echo $this->get_school_details_url(
 			array(
-				'post' => $school,
+				'post' => $school->ID,
 			)
 		);
 		?>

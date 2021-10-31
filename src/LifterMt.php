@@ -27,7 +27,6 @@ class LifterMt {
 		add_action( 'init', array( $this, 'enqueue_scripts' ) );
 		add_action( 'init', array( $this, 'register_routes' ) );
 		add_action( 'init', array( $this, 'register_schools_post_type' ) );
-		add_action( 'load-page.php', array( $this, 'add_export_button' ) );
 
 		add_action( 'admin_menu', array( $this, 'add_admin_main_menu' ) );
 		add_action( 'post_row_actions', array( $this, 'register_school_row_actions' ) );
@@ -206,17 +205,23 @@ class LifterMt {
 			array( $this, 'show_school_details' )
 		);
 
-		$hook = add_submenu_page(
-			null,
-			__( 'Welcome', 'llms-school' ),
-			__( 'Welcome', 'llms-school' ),
-			'manage_options',
-			'llms_students_export',
-			array( Student::class, 'download' )
-		);
-
-		if ( $_GET['page'] === 'llms_students_export' ) {
+		if ( isset( $_GET['page'] ) && $_GET['page'] === 'llms_students_export' ) {
 			Student::download();
+			die;
+		}
+
+		if ( isset( $_GET['page'] ) && $_GET['page'] === 'llms_groups_export' ) {
+			Group::download();
+			die;
+		}
+
+		if ( isset( $_GET['page'] ) && $_GET['page'] === 'llms_course_export' ) {
+			Course::download();
+			die;
+		}
+
+		if ( isset( $_GET['page'] ) && $_GET['page'] === 'llms_quiz_export' ) {
+			Quiz::download();
 			die;
 		}
 	}
