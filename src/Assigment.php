@@ -3,7 +3,7 @@ namespace Lifter\MT;
 
 use Illuminate\Support\Arr;
 
-class Course {
+class Assigment {
 	public static function download() {
 		$self    = new self();
 		$filters = $_REQUEST;
@@ -11,7 +11,7 @@ class Course {
 		$filters['start']  = 0;
 		$filters['length'] = 100;
 
-		$fileName = 'llms_course.csv';
+		$fileName = 'llms_assignments.csv';
 
 		header( 'Cache-Control: must-revalidate, post-check=0, pre-check=0' );
 		header( 'Content-Description: File Transfer' );
@@ -20,15 +20,12 @@ class Course {
 		header( 'Expires: 0' );
 		header( 'Pragma: public' );
 
-		$df = fopen( 'php://output', 'w' );
-		// fputcsv( $df, array_keys( reset( $array ) ) );
+		$df   = fopen( 'php://output', 'w' );
 		$data = $self->get( $filters );
+		fputcsv( $df, array_keys( reset( $data ) ) );
 		while ( count( $data ) ) {
 			foreach ( $data as $row ) {
-				fputcsv(
-					$df,
-					$row
-				);
+				fputcsv( $df, $row );
 			}
 
 			$filters['start'] += $filters['length'];
@@ -47,7 +44,7 @@ class Course {
 
 		$student_courses = $query->get();
 
-		$student_courses = array_map( [ $this, 'map_course_status' ], $student_courses );
+		$student_courses = array_map( [ $this, 'format_item' ], $student_courses );
 
 		return $student_courses;
 	}
@@ -98,34 +95,31 @@ class Course {
 	}
 
 	public function query() {
-		$group_query = wpFluent()->table( 'posts' )->where( 'post_type', 'course' )
-			->select( 'post_id' );
-
-		$query = wpFluent()->table( 'lifterlms_user_postmeta' )
-			->select( 'user_id', 'post_id' )
-			->where( 'meta_key', '_status' )
-			->where( wpFluent()->raw( 'post_id in (' . $group_query->getQuery()->getRawSql() . ')' ) );
+		$query = wpFluent()->table( 'lifterlms_assignments_submissions' )
+					 ->join( 'posts', 'posts.ID', '=', 'assignment_id' )
+					 ->select( 'lifterlms_quiz_attempts.*', 'posts.ID', 'posts.post_title' );
 
 		return $query;
 	}
 
-	public function map_course_status( $student_course ) {
-		$student = llms_get_student( $student_course['user_id'] );
+	public function format_item( $quiz_attempts ) {
+		$student = llms_get_student( $quiz_attempts['user_id'] );
 
-		$course = get_post( $student_course['post_id'] );
+		$lesson = get_post( get_post_meta( $quiz_attempts['assignment_id'], '_llms_lesson_id', true ) );
 
-		$student_course['student_id']                = $student->ID;
-		$student_course['student_name']              = $student->display_name;
-		$student_course['student_email']             = $student->user_email;
-		$student_course['course_id']                 = $course->ID;
-		$student_course['course_name']               = $course->post_title;
-		$student_course['course_status']             = llms_get_enrollment_status_name( $student->get_enrollment_status( $course->ID ) );
-		$student_course['course_enrollment_updated'] = $student->get_enrollment_date( $course->ID, 'updated' );
-		$student_course['course_completed']          = $student->get_completion_date( $course->ID );
-		$student_course['course_progress']           = $student->get_progress( $course->ID );
-		$student_course['course_grade']              = $student->get_grade( $course->ID );
+		$quiz_item['user_id']       = $quiz_attempts['user_id'];
+		$quiz_item['student_name']  = $student->display_name;
+		$quiz_item['student_email'] = $student->user_email;
+		$quiz_item['lesson_id']     = $lesson->ID;
+		$quiz_item['lesson_name']   = $lesson->post_title;
+		$quiz_item['quiz_id']       = $quiz_attempts['ID'];
+		$quiz_item['quiz_name']     = $quiz_attempts['post_title'];
+		$quiz_item['grade']         = $quiz_attempts['grade'];
+		$quiz_item['status']        = $quiz_attempts['status'];
+		$quiz_item['start_date']    = $quiz_attempts['created'];
+		$quiz_item['updated']       = $quiz_attempts['updated'];
 
-		return $student_course;
+		return $quiz_item;
 	}
 
 }

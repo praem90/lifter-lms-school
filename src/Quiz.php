@@ -61,6 +61,10 @@ class Quiz {
 			$query->where( wpFluent()->raw( 'student_id in (' . $school_query->getQuery()->getRawSql() . ')' ) );
 		}
 
+		if ( Arr::get( $filters, 'student_id' ) ) {
+			$query->where( 'student_id', $filters['student_id'] );
+		}
+
 		if ( Arr::get( $filters, 'class' ) ) {
 			$school_query = wpFluent()->table( 'usermeta' )
 						->where( 'meta_key', '=', 'class' )
@@ -113,7 +117,7 @@ class Quiz {
 		$quiz_item['attempts']      = $quiz_attempts['attempt'];
 		$quiz_item['grade']         = $quiz_attempts['grade'];
 		$quiz_item['status']        = $quiz_attempts['status'];
-		$quiz_item['start_data']    = $quiz_attempts['start_data'];
+		$quiz_item['start_date']    = $quiz_attempts['start_date'];
 		$quiz_item['end_date']      = $quiz_attempts['end_date'];
 
 		return $quiz_item;

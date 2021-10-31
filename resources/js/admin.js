@@ -24,6 +24,29 @@ jQuery(function() {
 			{data: 'llms_overall_grade', title: 'Overall Grade'},
 			{data: 'user_registered', title: 'Registered Date'},
 			{data: 'llms_last_seen', title: 'Last seen', render: () => ''},
+			{data: 'action', title: 'Action', render: function (d, i, row) {
+				const url = new URL(location.href);
+
+				url.searchParams.set('page', 'llms_course_export')
+				url.searchParams.set('student_id', row.ID)
+				url.searchParams.set('school_id', jQuery('input#llms_school_id').val());
+				const course_url = url.href;
+				url.searchParams.set('page', 'llms_quiz_export');
+				const quiz_url = url.href;
+				url.searchParams.set('page', 'llms_assignment_export');
+				const assignment_url = url.href;
+
+				const html = `<div class="dropdown">
+  	  	  	  	  	  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">Reports</button>
+  	  	  	  	  	  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+    					<li><a class="dropdown-item" href="${course_url}">Course</a></li>
+    					<li><a class="dropdown-item" href="${quiz_url}">Quiz</a></li>
+    					<li><a class="dropdown-item" href="${assignment_url}">Assignment</a></li>
+  	  	  	  	  	  </ul>
+					</div>`;
+				return html;
+				}
+			},
 		],
 	});
 
@@ -54,6 +77,24 @@ jQuery(function() {
 			{data: 'class', title: 'Class', render: data => data || ''},
 			{data: 'section', title: 'Section', render: data => data || ''},
 			{data: 'students_count', title: 'Students Count'},
+			{data: 'action', title: 'Action', render: function (d, i, row) {
+				const url = new URL(lifter_mt.admin_url);
+
+				url.searchParams.set('page', 'llms_course_export')
+				url.searchParams.set('group_id', row.ID)
+
+				const html = `<div class="dropdown">
+  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+    <li><a class="dropdown-item" href="${url.href}">Course</a></li>
+    <li><a class="dropdown-item" href="#">Another action</a></li>
+    <li><a class="dropdown-item" href="#">Something else here</a></li>
+  </ul>
+</div>`;
+				return html;
+			}},
 		],
 	});
 

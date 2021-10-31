@@ -146,6 +146,7 @@ class LifterMt {
 	}
 
 	public function enqueue_admin_scripts() {
+		wp_enqueue_script( 'bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js' , array( 'jquery' ), '5.1.3', true );
 		wp_enqueue_script( 'dataTable', 'https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js' , array( 'jquery' ), '1.11.3', true );
 		wp_enqueue_script( 'dataTable-bt', 'https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js' , array( 'dataTable' ), '1.11.3', true );
 		wp_enqueue_style( 'dataTable', 'https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css' , array(), '1.11.3' );
@@ -161,8 +162,9 @@ class LifterMt {
 			'lifter-mt',
 			'lifter_mt',
 			array(
-				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'lifter-mt-ajax-nonce' ),
+				'ajax_url'  => admin_url( 'admin-ajax.php' ),
+				'admin_url' => admin_url( 'admin.php' ),
+				'nonce'     => wp_create_nonce( 'lifter-mt-ajax-nonce' ),
 			)
 		);
 	}
@@ -222,6 +224,11 @@ class LifterMt {
 
 		if ( isset( $_GET['page'] ) && $_GET['page'] === 'llms_quiz_export' ) {
 			Quiz::download();
+			die;
+		}
+
+		if ( isset( $_GET['page'] ) && $_GET['page'] === 'llms_assignment_export' ) {
+			Assigment::download();
 			die;
 		}
 	}
