@@ -10,23 +10,23 @@ $post = get_post( $post );
 	<!-- Here are our tabs -->
 	<nav class="nav-tab-wrapper">
 		<a href="<?php echo esc_url( $this->get_school_details_url( $post ) ); ?>" class="nav-tab
-<?php
-if ( $tab === 'details' ) :
-	?>
+							<?php
+							if ( $tab === 'details' ) :
+								?>
  nav-tab-active<?php endif; ?>">
 			<?php echo esc_html__( 'School', 'llms-school' ); ?>
 		</a>
 	  <a href="<?php echo esc_url( $this->get_school_details_url( $post, array( 'tab' => 'students' ) ) ); ?>" class="nav-tab
-<?php
-if ( $tab === 'students' ) :
-	?>
+						  <?php
+							if ( $tab === 'students' ) :
+								?>
  nav-tab-active<?php endif; ?>">
 			<?php echo esc_html__( 'Students', 'llms-school' ); ?>
 	  </a>
 	  <a href="<?php echo esc_url( $this->get_school_details_url( $post, array( 'tab' => 'groups' ) ) ); ?>" class="nav-tab
-<?php
-if ( $tab === 'group' ) :
-	?>
+						  <?php
+							if ( $tab === 'group' ) :
+								?>
  nav-tab-active<?php endif; ?>">
 			<?php echo esc_html__( 'Groups', 'llms-school' ); ?>
 	  </a>
@@ -36,3 +36,4 @@ if ( $tab === 'group' ) :
 	<?php require __DIR__ . '/school-' . $tab . '.php'; ?>
 	</div>
   </div>
+

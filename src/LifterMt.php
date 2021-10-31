@@ -31,6 +31,16 @@ class LifterMt {
 		add_action( 'admin_menu', array( $this, 'add_admin_main_menu' ) );
 		add_action( 'post_row_actions', array( $this, 'register_school_row_actions' ) );
 		add_action( 'admin_init', array( $this, 'enqueue_admin_scripts' ) );
+
+		add_filter(
+			'set-screen-option',
+			function( $s, $o, $value ) {
+			return $value;
+			},
+			10,
+			3
+		);
+
 	}
 
 	public function abort_if_basic_version_is_installed() {
@@ -48,19 +58,16 @@ class LifterMt {
 		);
 		deactivate_plugins( $this->plugin_basename );
 
-		wp_die( 'This works with Lifter LMS wordpress plugin only' . esc_attr( admin_url( 'plugins.php' ) ) . "'>plugins page</a>" );
+		wp_die( 'This works with Lifter LMS WordPress plugin only' . esc_attr( admin_url( 'plugins.php' ) ) . "'>plugins page</a>" );
 	}
 
 	public function register_schools_post_type() {
-					// Localize data.
-
-
 			register_post_type(
 				'llms_school',
 				array(
 					'labels'              => array(
 						'name'               => __( 'Schools', 'lifterlms-schools' ),
-						'title'               => __( 'Name', 'lifterlms-schools' ),
+						'title'              => __( 'Name', 'lifterlms-schools' ),
 						'singular_name'      => __( 'School', 'lifterlms-schools' ),
 						'menu_name'          => _x( 'Schools', 'Admin menu name', 'lifterlms-schools' ),
 						'add_new'            => __( 'Add School', 'lifterlms-schools' ),
@@ -115,10 +122,10 @@ class LifterMt {
 			$current_url = home_url( add_query_arg( array(), $wp->request ) );
 			echo acf_form(
 				[
-					'id' => 'group_school_info',
-					'post_id' => get_post()->id,
-					'field_groups' => [ 'group_617d20b979be4' ],
-					'return' => $current_url,
+					'id'              => 'group_school_info',
+					'post_id'         => get_post()->id,
+					'field_groups'    => [ 'group_617d20b979be4' ],
+					'return'          => $current_url,
 					'form_attributes' => [
 						'action' => admin_url( 'post.php' ),
 					],
@@ -147,6 +154,9 @@ class LifterMt {
 	}
 
 	public function enqueue_admin_scripts() {
+		wp_enqueue_script( 'dataTable', 'https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js' , array( 'jquery' ), '1.11.3', true );
+		wp_enqueue_style( 'dataTable', 'https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css' , array( 'jquery' ), '1.11.3' );
+		wp_enqueue_script( 'lifter-mt', plugins_url( 'resources/dist/admin.js', dirname( __FILE__ ) ), array( 'jquery' ), self::VERSION, true );
 	}
 
 	public function localize_script() {
@@ -189,18 +199,32 @@ class LifterMt {
 	}
 
 	public function add_admin_main_menu() {
-			add_submenu_page(
-				null,
-				__( 'Welcome', 'llms-school' ),
-				__( 'Welcome', 'llms-school' ),
-				'manage_options',
-				'llms_school_details',
-				array( $this, 'show_school_details' )
-			);
+		$hook = add_submenu_page(
+			null,
+			__( 'Welcome', 'llms-school' ),
+			__( 'Welcome', 'llms-school' ),
+			'manage_options',
+			'llms_school_details',
+			array( $this, 'show_school_details' )
+		);
+
+		add_action( 'load-' . $hook, array( $this, 'students_screen_options' ) );
+
+	}
+
+	public function students_screen_options() {
+		$option = 'per_page';
+		$args   = [
+			'label'   => __( 'Students', 'llms-school' ),
+			'default' => 5,
+			'option'  => 'users_per_page',
+		];
+
+		add_screen_option( $option, $args );
 	}
 
 	public function register_school_row_actions( $actions, $post = false ) {
-		$post = $post ?: get_post();
+		$post = $post ? $post : get_post();
 
 		if ( 'llms_school' !== $post->post_type ) {
 			return $actions;
@@ -226,7 +250,7 @@ class LifterMt {
 			array(
 				'page' => 'llms_school_details',
 				'post' => $post->ID,
-				'tab' => 'details',
+				'tab'  => 'details',
 			),
 			$args
 		);
