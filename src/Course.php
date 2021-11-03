@@ -12,6 +12,10 @@ class Course {
 		$filters['length'] = 100;
 		$data              = $self->get( $filters );
 
+		if ( count( $data ) === 0 ) {
+			wp_die( 'No Courses to export' );
+		}
+
 		$fileName = 'llms_course.csv';
 
 		header( 'Cache-Control: must-revalidate, post-check=0, pre-check=0' );
