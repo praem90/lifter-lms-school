@@ -110,7 +110,7 @@ class LifterMt {
 		if ( 'students' === $column ) {
 			$role_query = Student::get_student_role_query();
 			echo wpFluent()->table( 'usermeta' )->where( 'meta_value', '=', $post_id )
-					->where( 'meta_key', 'scholl' )
+					->where( 'meta_key', 'school' )
 				   ->where( wpFluent()->raw( ' user_id in (' . $role_query->getQuery()->getRawSql() . ')' ) )
 				   ->count();
 		}
