@@ -32,6 +32,20 @@ class LifterMt {
 		add_action( 'admin_menu', array( $this, 'add_admin_main_menu' ) );
 		add_action( 'post_row_actions', array( $this, 'register_school_row_actions' ) );
 		add_action( 'admin_init', array( $this, 'enqueue_admin_scripts' ) );
+
+		add_action( 'wp_head', array( $this, 'load_acf_head' ) );
+
+		add_filter( 'enter_title_here', array( $this, 'my_title_place_holder' ) , 20 , 2 );
+		add_filter( 'manage_llms_school_posts_columns' , array( $this, 'llms_school_custom_columns' ) );
+		add_action( 'manage_llms_school_posts_custom_column' , array( $this, 'fill_llms_school_column' ), 10, 2 );
+
+	}
+
+	public function load_acf_head() {
+
+		if ( ! isset( $_POST['_acf_post_id'] ) && get_post_type() === 'llms_group' ) {
+			acf_form_head();
+		}
 	}
 
 	public function abort_if_basic_version_is_installed() {
@@ -50,6 +64,68 @@ class LifterMt {
 		deactivate_plugins( $this->plugin_basename );
 
 		wp_die( 'This works with Lifter LMS WordPress plugin only' . esc_attr( admin_url( 'plugins.php' ) ) . "'>plugins page</a>" );
+	}
+
+	public function llms_school_custom_columns( $columns ) {
+		$date = array_pop( $columns );
+
+		$columns['school_id_manual'] = __( 'School ID' ) . ' ( ' . __( 'Manual' ) . ' )';
+		$columns['title']            = __( 'School Name' );
+		$columns['contact_name']     = __( 'Contact Name' );
+		$columns['contact_email']    = __( 'Contact Email' );
+		$columns['contact_mobile']   = __( 'Contact Mobile' );
+		$columns['students']         = __( 'Students' );
+		$columns['groups']           = __( 'Groups Assigned' );
+		$columns['memberships']      = __( 'Membership Assigned' );
+		$columns['date']             = $date;
+
+		return $columns;
+	}
+
+	public function fill_llms_school_column( $column, $post_id ) {
+		$columns = array(
+			'school_id_manual',
+			'contact_name',
+			'contact_email',
+			'contact_mobile',
+		);
+
+		if ( in_array( $column, $columns ) ) {
+			echo get_post_meta( $post_id, $column, true );
+		}
+
+		// TODO: It seems like groups and membership has one on one relation
+		if ( 'groups' === $column || 'memberships' === $column ) {
+			echo wpFluent()->table( 'posts' )->where( 'post_type', '=', 'llms_group' )
+				->join(
+					'postmeta',
+					function ( $table ) use ( $post_id ) {
+						$table->on( 'postmeta.post_id', '=', 'posts.ID' );
+						$table->where( 'postmeta.meta_key', '=', 'school' );
+						$table->on( 'postmeta.meta_value', '=', wpFluent()->raw( $post_id ) );
+					}
+				)->count();
+		}
+
+		if ( 'students' === $column ) {
+			$role_query = Student::get_student_role_query();
+			echo wpFluent()->table( 'usermeta' )->where( 'meta_value', '=', $post_id )
+					->where( 'meta_key', 'scholl' )
+				   ->where( wpFluent()->raw( ' user_id in (' . $role_query->getQuery()->getRawSql() . ')' ) )
+				   ->count();
+		}
+
+	}
+
+	public function my_title_place_holder( $title, $post ) {
+
+		if ( 'llms_school' === $post->post_type ) {
+			$my_title = 'School Name';
+			return $my_title;
+		}
+
+		return $title;
+
 	}
 
 	public function register_schools_post_type() {
@@ -101,13 +177,13 @@ class LifterMt {
 			function () {
 			global $wp;
 			$current_url = home_url( add_query_arg( array(), $wp->request ) );
-			acf_form_head();
 			acf_form(
 				[
-					'id'           => 'group_school_info',
-					'post_id'      => get_post()->id,
-					'field_groups' => [ 'group_617d20b979be4' ],
-					'return'       => $current_url,
+					'id'                 => 'group_school_info',
+					'post_id'            => get_post()->id,
+					'field_groups'       => [ 'group_617d20b979be4' ],
+					'return'             => $current_url,
+					'html_submit_button' => '<footer class="llms-group-card-footer"><button class="llms-button-primary button-right llms-group-button" type="submit"><i class="fa fa-floppy-o" aria-hidden="true"></i> Save</button></footer>',
 				]
 			);
 			}
@@ -136,11 +212,10 @@ class LifterMt {
 
 	public function enqueue_admin_scripts() {
 		wp_enqueue_script( 'bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js' , array( 'jquery' ), '5.1.3', true );
-		wp_enqueue_script( 'dataTable', 'https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js' , array( 'jquery' ), '1.11.3', true );
-		wp_enqueue_script( 'dataTable-bt', 'https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js' , array( 'dataTable' ), '1.11.3', true );
-		wp_enqueue_style( 'dataTable', 'https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css' , array(), '1.11.3' );
-		wp_enqueue_style( 'dataTable-bt', 'https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css' , array(), '1.11.3' );
 		wp_enqueue_style( 'bootstrap5', 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css' , array(), '5.1.3' );
+
+		wp_enqueue_script( 'dataTable', 'https://cdn.datatables.net/v/bs5/dt-1.11.3/datatables.min.js' , array( 'jquery' ), '1.11.3', true );
+		wp_enqueue_style( 'dataTable', 'https://cdn.datatables.net/v/bs5/dt-1.11.3/datatables.min.css' , array(), '1.11.3' );
 
 		wp_enqueue_style( 'lifter-mt', plugins_url( 'resources/dist/base.css', dirname( __FILE__ ) ), array(), self::VERSION, true );
 		wp_enqueue_script( 'lifter-mt', plugins_url( 'resources/dist/admin.js', dirname( __FILE__ ) ), array( 'jquery' ), self::VERSION, true );

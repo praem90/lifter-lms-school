@@ -24,8 +24,10 @@ acf_form(
 		<button href="
 		<?php
 		echo $this->get_school_details_url(
+			$school,
 			array(
-				'post' => $school->ID,
+				'post'      => $school->ID,
+				'school_id' => $school->ID,
 			)
 		);
 		?>

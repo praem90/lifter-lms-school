@@ -10,6 +10,7 @@ class Course {
 
 		$filters['start']  = 0;
 		$filters['length'] = 100;
+		$data              = $self->get( $filters );
 
 		$fileName = 'llms_course.csv';
 
@@ -21,8 +22,7 @@ class Course {
 		header( 'Pragma: public' );
 
 		$df = fopen( 'php://output', 'w' );
-		// fputcsv( $df, array_keys( reset( $array ) ) );
-		$data = $self->get( $filters );
+		fputcsv( $df, array_keys( reset( $data ) ) );
 		while ( count( $data ) ) {
 			foreach ( $data as $row ) {
 				fputcsv(
@@ -62,6 +62,8 @@ class Course {
 						->select( 'user_id' );
 
 			$query->where( wpFluent()->raw( 'user_id in (' . $school_query->getQuery()->getRawSql() . ')' ) );
+
+			$this->school = get_post( $filters['school_id'] );
 		}
 
 		if ( Arr::get( $filters, 'student_id' ) ) {
@@ -114,9 +116,18 @@ class Course {
 
 		$course = get_post( $student_course['post_id'] );
 
-		$student_course['student_id']                = $student->ID;
-		$student_course['student_name']              = $student->display_name;
-		$student_course['student_email']             = $student->user_email;
+		$student_course['student_id']        = $student_course['user_id'];
+		$student_course['student_manual_id'] = get_user_meta( $student_course['user_id'], 'manual_id' , true );
+		$student_course['first_name']        = $student->first_name;
+		$student_course['last_name']         = $student->last_name;
+		$student_course['student_email']     = $student->user_email;
+
+		$student_course['school_system_id'] = $this->school->ID;
+		$student_course['school_manual_id'] = get_post_meta( $this->school, 'school_manual_id', true );
+		$student_course['school_name']      = $this->school->post_title;
+		$student_course['class']            = get_user_meta( $student_course['user_id'], 'class' , true );
+		$student_course['section']          = get_user_meta( $student_course['user_id'], 'section' , true );
+
 		$student_course['course_id']                 = $course->ID;
 		$student_course['course_name']               = $course->post_title;
 		$student_course['course_status']             = llms_get_enrollment_status_name( $student->get_enrollment_status( $course->ID ) );

@@ -11,6 +11,12 @@ class Assigment {
 		$filters['start']  = 0;
 		$filters['length'] = 100;
 
+		$data = $self->get( $filters );
+
+		if ( count( $data ) === 0 ) {
+			wp_die( 'No Quiz to export' );
+		}
+
 		$fileName = 'llms_assignments.csv';
 
 		header( 'Cache-Control: must-revalidate, post-check=0, pre-check=0' );
@@ -20,8 +26,7 @@ class Assigment {
 		header( 'Expires: 0' );
 		header( 'Pragma: public' );
 
-		$df   = fopen( 'php://output', 'w' );
-		$data = $self->get( $filters );
+		$df = fopen( 'php://output', 'w' );
 		fputcsv( $df, array_keys( reset( $data ) ) );
 		while ( count( $data ) ) {
 			foreach ( $data as $row ) {
@@ -59,6 +64,8 @@ class Assigment {
 						->select( 'user_id' );
 
 			$query->where( wpFluent()->raw( 'user_id in (' . $school_query->getQuery()->getRawSql() . ')' ) );
+
+			$this->school = get_post( $filters['school_id'] );
 		}
 
 		if ( Arr::get( $filters, 'student_id' ) ) {
@@ -97,7 +104,7 @@ class Assigment {
 	public function query() {
 		$query = wpFluent()->table( 'lifterlms_assignments_submissions' )
 					 ->join( 'posts', 'posts.ID', '=', 'assignment_id' )
-					 ->select( 'lifterlms_quiz_attempts.*', 'posts.ID', 'posts.post_title' );
+					 ->select( 'lifterlms_assignments_submissions.*', 'posts.ID', 'posts.post_title' );
 
 		return $query;
 	}
@@ -108,7 +115,8 @@ class Assigment {
 		$lesson = get_post( get_post_meta( $quiz_attempts['assignment_id'], '_llms_lesson_id', true ) );
 
 		$quiz_item['user_id']       = $quiz_attempts['user_id'];
-		$quiz_item['student_name']  = $student->display_name;
+		$quiz_item['first_name']    = $student->first_name;
+		$quiz_item['last_name']     = $student->last_name;
 		$quiz_item['student_email'] = $student->user_email;
 		$quiz_item['lesson_id']     = $lesson->ID;
 		$quiz_item['lesson_name']   = $lesson->post_title;

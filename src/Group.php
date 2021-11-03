@@ -23,9 +23,15 @@ class Group {
 		$filters['start']  = 0;
 		$filters['length'] = 100;
 
+		$data = $self->get( $filters );
+		if ( count( $data ) === 0 ) {
+			wp_die( 'There are no students found to export' );
+		}
+
 		$fileName = 'llms_grups.csv';
 
 		header( 'Cache-Control: must-revalidate, post-check=0, pre-check=0' );
+		header( 'Content-Encoding: utf-8' );
 		header( 'Content-Description: File Transfer' );
 		header( 'Content-type: text/csv' );
 		header( "Content-Disposition: attachment; filename={$fileName}" );
@@ -33,14 +39,11 @@ class Group {
 		header( 'Pragma: public' );
 
 		$df = fopen( 'php://output', 'w' );
-		// fputcsv( $df, array_keys( reset( $array ) ) );
-		$data = $self->get( $filters );
+		fputcsv( $df, array_keys( $self->map_item( $data[0] ) ) );
+
 		while ( count( $data ) ) {
 			foreach ( $data as $row ) {
-				fputcsv(
-					$df,
-					$self->map_item( $row )
-				);
+				fputcsv( $df, $self->map_item( $row ) );
 			}
 
 			$filters['start'] += $filters['length'];
@@ -181,7 +184,7 @@ class Group {
 				$student['courses_count'] = $user_count ? count( unserialize( $user_count['_llms_post_id'] ) ) : 0;
 
 				return $student;
-			} ,
+			},
 			$groups
 		);
 

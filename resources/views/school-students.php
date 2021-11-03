@@ -24,15 +24,17 @@ acf_form(
 		<button href="
 		<?php
 		echo $this->get_school_details_url(
+			$school,
 			array(
-				'post' => $school->ID,
+				'post'      => $school->ID,
+				'school_id' => $school->ID,
 			)
 		);
 		?>
 		" class="btn btn-primary" id="export_students">Export</button>
 		</div>
 	</div>
-	<div class="row">
+	<div class="row mt-3">
 		<div class="col">
 			<table id="students-table" class="table"></table>
 		</div>

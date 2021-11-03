@@ -114,6 +114,7 @@ jQuery(function() {
 
 		url.searchParams.delete('post');
 		url.searchParams.append('post',jQuery('input#llms_school_id').val() );
+		url.searchParams.append('school_id',jQuery('input#llms_school_id').val() );
 		url.searchParams.delete('page');
 		url.searchParams.append('page', 'llms_students_export');
 		url.searchParams.append('class', jQuery(this).parents('.row').find('select').eq(0).val());
@@ -128,6 +129,7 @@ jQuery(function() {
 		url.searchParams.delete('post');
 		url.searchParams.append('post',jQuery('input#llms_school_id').val() );
 		url.searchParams.delete('page');
+		url.searchParams.append('school_id',jQuery('input#llms_school_id').val() );
 		url.searchParams.append('page', 'llms_groups_export');
 		url.searchParams.append('class', jQuery(this).parents('.row').find('select').eq(0).val());
 		url.searchParams.append('section', jQuery(this).parents('.row').find('select').eq(1).val());

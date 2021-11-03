@@ -5,7 +5,7 @@
 	</tr>
 	<tr>
 		<th><?php echo esc_attr__( 'School ID', 'llms-school' ) . ' (' . esc_attr__( 'Manual', 'llms-school' ) . ')' ; ?></th>
-		<td><?php echo esc_html( $school->ID ); ?></td>
+		<td><?php echo esc_html( get_post_meta( $school, 'manual_id', $school->ID ) ); ?></td>
 	</tr>
 	<tr>
 		<th><?php echo esc_attr__( 'School Name', 'llms-school' ); ?></th>

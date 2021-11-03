@@ -23,9 +23,14 @@ class Student {
 		$filters['start']  = 0;
 		$filters['length'] = 100;
 
-		$fileName = 'somefile.csv';
+		$data = $self->get( $filters );
+		if ( count( $data ) === 0 ) {
+			wp_die( 'There are no students found to export' );
+		}
+		$fileName = 'students.csv';
 
 		header( 'Cache-Control: must-revalidate, post-check=0, pre-check=0' );
+		header( 'Content-Encoding: utf-8' );
 		header( 'Content-Description: File Transfer' );
 		header( 'Content-type: text/csv' );
 		header( "Content-Disposition: attachment; filename={$fileName}" );
@@ -33,8 +38,9 @@ class Student {
 		header( 'Pragma: public' );
 
 		$df = fopen( 'php://output', 'w' );
-		// fputcsv( $df, array_keys( reset( $array ) ) );
-		$data = $self->get( $filters );
+
+		fputcsv( $df, array_keys( $self->map_item( $data[0] ) ) );
+
 		while ( count( $data ) ) {
 			foreach ( $data as $row ) {
 				fputcsv(
@@ -57,14 +63,17 @@ class Student {
 			'manual_id'             => isset( $row['manual_id'] ) ? $row['manual_id'] : $row['ID'],
 			'first_name'            => $row['first_name'],
 			'last_name'             => $row['last_name'],
+			'school_system_id'      => get_post( $row['school'] )->ID,
+			'school_manual_id'      => get_post_meta( $row['school'] , 'manual_id', true ),
+			'school_name'           => get_post( $row['school'] )->post_title,
 			'class'                 => $row['class'],
 			'section'               => $row['section'],
 			'llms_membership'       => $row['llms_membership'],
 			'llms_group'            => $row['llms_group'],
 			'llms_enrollment'       => isset( $row['llms_enrollment'] ) ? $row['llms_enrollment'] : '',
 			'llms_completion'       => isset( $row['llms_completion'] ) ? $row['llms_completion'] : '',
-			'llms_overall_progress' => $row['llms_overall_progress'],
-			'llms_overall_grade'    => $row['llms_overall_grade'],
+			'llms_overall_progress' => Arr::get( $row, 'llms_overall_progress', 'N/A' ),
+			'llms_overall_grade'    => Arr::get( $row, 'llms_overall_grade', 'N/A' ),
 			'user_registered'       => $row['user_registered'],
 			'llms_last_seen'        => isset( $row['llms_last_seen'] ) ? $row['llms_last_seen'] : '',
 		);
@@ -136,11 +145,16 @@ class Student {
 	public function get_query() {
 		$query = wpFluent()->table( 'users' );
 
-		$meta_query = wpFluent()->table( 'usermeta' )->where( 'meta_key', '=', 'wp_capabilities' )->where( 'meta_value', 'like', '%"student"%' )->select( 'user_id' );
+		$meta_query = self::get_student_role_query();
 
 		$query->where( wpFluent()->raw( 'ID in (' . $meta_query->getQuery()->getRawSql() . ')' ) );
 
 		return $query;
+	}
+
+	public static function get_student_role_query() {
+		$role = apply_filters( 'llms_student_role', 'student-b2b' );
+		return wpFluent()->table( 'usermeta' )->where( 'meta_key', '=', 'wp_capabilities' )->where( 'meta_value', 'like', '%"' . $role . '"%' )->select( 'user_id' );
 	}
 
 	public function get_meta( &$students ) {
@@ -148,7 +162,7 @@ class Student {
 
 		$query->select( 'user_id', 'meta_key', 'meta_value' );
 
-		$query->whereIn( 'meta_key', array( 'first_name', 'school', 'class', 'section', 'last_name', 'llms_overall_grade', 'llms_overall_progress', 'llms_last_login' ) );
+		$query->whereIn( 'meta_key', array( 'first_name', 'manual_id', 'school', 'class', 'section', 'last_name', 'llms_overall_grade', 'llms_overall_progress', 'llms_last_login' ) );
 
 		$meta = $query->get();
 
