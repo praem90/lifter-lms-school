@@ -34,17 +34,25 @@ class LifterMt {
 		add_action( 'admin_init', array( $this, 'enqueue_admin_scripts' ) );
 
 		add_action( 'wp_head', array( $this, 'load_acf_head' ) );
+		add_action( 'acf/save_post', array( $this, 'redirect_after_save_group' ) );
 
 		add_filter( 'enter_title_here', array( $this, 'my_title_place_holder' ) , 20 , 2 );
 		add_filter( 'manage_llms_school_posts_columns' , array( $this, 'llms_school_custom_columns' ) );
 		add_action( 'manage_llms_school_posts_custom_column' , array( $this, 'fill_llms_school_column' ), 10, 2 );
-
 	}
 
 	public function load_acf_head() {
-
-		if ( ! isset( $_POST['_acf_post_id'] ) && get_post_type() === 'llms_group' ) {
+		global $wp;
+		$path = add_query_arg( array(), $wp->request );
+		if ( strpos( $path, 'group/' ) === 0 ) {
 			acf_form_head();
+		}
+	}
+
+	public function redirect_after_save_group( $post_id ) {
+		if ( get_post_type( $post_id ) === 'llms_group' ) {
+			echo '<script>window.location.href = window.location.href;</script>';
+			die;
 		}
 	}
 
@@ -175,17 +183,15 @@ class LifterMt {
 		add_action(
 			'llms_group_profile_after_settings',
 			function () {
-			global $wp;
-			$current_url = home_url( add_query_arg( array(), $wp->request ) );
-			acf_form(
-				[
-					'id'                 => 'group_school_info',
-					'post_id'            => get_post()->id,
-					'field_groups'       => [ 'group_617d20b979be4' ],
-					'return'             => $current_url,
-					'html_submit_button' => '<footer class="llms-group-card-footer"><button class="llms-button-primary button-right llms-group-button" type="submit"><i class="fa fa-floppy-o" aria-hidden="true"></i> Save</button></footer>',
-				]
-			);
+				global $wp;
+				acf_form(
+					[
+						'id'                 => 'group_school_info',
+						'post_id'            => get_post()->id,
+						'field_groups'       => [ 'group_617d20b979be4' ],
+						'html_submit_button' => '<footer class="llms-group-card-footer"><button class="llms-button-primary button-right llms-group-button" type="submit"><i class="fa fa-floppy-o" aria-hidden="true"></i> Save</button></footer>',
+					]
+				);
 			}
 		);
 	}

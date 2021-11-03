@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Plugin Name:     Lifter LMS School Add-on
- * Plugin URI:      https://github.com/praem90/lifter-multitenancy
+ * Plugin Name:     LifterLMS Schools Add-on
+ * Plugin URI:      https://github.com/praem90/lifter-lms-school
  * Description:     A School add-on for Lifter LMS
  * Version:         0.0.1
  * Requires PHP:    7.4
