@@ -2,6 +2,8 @@
 
 namespace Lifter\MT;
 
+use Illuminate\Support\Arr;
+
 class LifterMt {
 
 	const VERSION = '0.0.1';
@@ -39,6 +41,26 @@ class LifterMt {
 		add_filter( 'enter_title_here', array( $this, 'my_title_place_holder' ) , 20 , 2 );
 		add_filter( 'manage_llms_school_posts_columns' , array( $this, 'llms_school_custom_columns' ) );
 		add_action( 'manage_llms_school_posts_custom_column' , array( $this, 'fill_llms_school_column' ), 10, 2 );
+
+		add_filter( 'woocommerce_account_menu_items', array( $this, 'alter_wc_account_menu' ) );
+		add_filter( 'init', array( $this, 'add_my_school_endpoint' ) );
+		add_action( 'woocommerce_account_log-history_endpoint', array( $this, 'show_my_reports' ) );
+	}
+
+	public function add_my_school_endpoint() {
+		add_rewrite_endpoint( 'my-school-report', EP_PAGES );
+	}
+
+	public function alter_wc_account_menu( $menu_items ) {
+
+		if ( ! $this->is_school_admin() ) {
+			return $menu_items;
+		}
+
+		$menu_items                     = Arr::only( 'dashboard', 'logout', 'customer-logout' );
+		$menu_items['my-school-report'] = 'My School Report';
+
+		return $menu_items;
 	}
 
 	public function load_acf_head() {
@@ -262,9 +284,26 @@ class LifterMt {
 	public function show_school_details() {
 		$id = isset( $_GET['post'] ) ? sanitize_text_field( $_GET['post'] ) : -1;
 
+		if ( ! $id && $this->is_school_admin() ) {
+			$id = get_usermeta( get_current_user_id(), 'school' );
+		}
+
+		if ( ! $id ) {
+			wp_die( 'School not found' );
+		}
+
 		$school = get_post( $id );
 
 		include_once dirname( __DIR__ ) . '/resources/views/school.php';
+	}
+
+	public function is_school_admin() {
+		$school_admin_role = apply_filters( 'llms_school_admin_role', 'school-admin' );
+		if ( in_array( $school_admin_role, wp_get_current_user()->roles ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	public function add_admin_main_menu() {
