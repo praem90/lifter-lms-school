@@ -108,9 +108,11 @@ class Course {
 			->select( 'post_id' );
 
 		$query = wpFluent()->table( 'lifterlms_user_postmeta' )
-			->select( 'user_id', 'post_id' )
+			->join( 'posts', 'posts.ID', '=', 'lifterlms_user_postmeta.post_id' )
 			->where( 'meta_key', '_status' )
-			->where( wpFluent()->raw( 'post_id in (' . $group_query->getQuery()->getRawSql() . ')' ) );
+			->where( 'posts.post_type', 'course' )
+			->select( 'user_id', 'post_id', 'posts.ID', 'posts.post_title' );
+			// ->where( wpFluent()->raw( 'post_id in (' . $group_query->getQuery()->getRawSql() . ')' ) );
 
 		return $query;
 	}
@@ -118,7 +120,7 @@ class Course {
 	public function map_course_status( $student_course ) {
 		$student = llms_get_student( $student_course['user_id'] );
 
-		$course = get_post( $student_course['post_id'] );
+		// $course = get_post( $student_course['post_id'] );
 
 		$student_course['student_id']        = $student_course['user_id'];
 		$student_course['student_manual_id'] = get_user_meta( $student_course['user_id'], 'manual_id' , true );
@@ -132,13 +134,13 @@ class Course {
 		$student_course['class']            = get_user_meta( $student_course['user_id'], 'class' , true );
 		$student_course['section']          = get_user_meta( $student_course['user_id'], 'section' , true );
 
-		$student_course['course_id']                 = $course->ID;
-		$student_course['course_name']               = $course->post_title;
-		$student_course['course_status']             = llms_get_enrollment_status_name( $student->get_enrollment_status( $course->ID ) );
-		$student_course['course_enrollment_updated'] = $student->get_enrollment_date( $course->ID, 'updated' );
-		$student_course['course_completed']          = $student->get_completion_date( $course->ID );
-		$student_course['course_progress']           = $student->get_progress( $course->ID );
-		$student_course['course_grade']              = $student->get_grade( $course->ID );
+		$student_course['course_id']                 = $student_course['ID'];
+		$student_course['course_name']               = $student_course['post_title'];
+		$student_course['course_status']             = llms_get_enrollment_status_name( $student->get_enrollment_status( $student_course['ID'] ) );
+		$student_course['course_enrollment_updated'] = $student->get_enrollment_date( $student_course['ID'], 'updated' );
+		$student_course['course_completed']          = $student->get_completion_date( $student_course['ID'] );
+		$student_course['course_progress']           = $student->get_progress( $student_course['ID'] );
+		$student_course['course_grade']              = $student->get_grade( $student_course['ID'] );
 
 		return $student_course;
 	}

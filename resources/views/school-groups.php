@@ -1,5 +1,5 @@
 <div class="container-fluid mt-2">
-	<div class="row align-items-center">
+	<div class="row align-items-center d-inline-flex">
 		<div class="col">
 <?php acf_form(
 	array(
@@ -20,7 +20,7 @@ acf_form(
 );
 ?>
 		</div>
-		<div class="col">
+		<div class="col align-self-end">
 		<button href="
 		<?php
 		echo $this->get_school_details_url(
@@ -34,7 +34,7 @@ acf_form(
 		" class="btn btn-primary" id="export_groups">Export</button>
 		</div>
 	</div>
-	<div class="row">
+	<div class="row mt-3">
 		<div class="col">
 			<table id="groups-table" class="table"></table>
 		</div>
