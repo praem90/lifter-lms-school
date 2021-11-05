@@ -26,8 +26,8 @@ acf_form(
 		echo $this->get_school_details_url(
 			$school,
 			array(
-				'post'      => $school->ID,
 				'school_id' => $school->ID,
+				'tab'       => 'llms_students_export',
 			)
 		);
 		?>

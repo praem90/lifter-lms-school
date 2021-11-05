@@ -42,23 +42,26 @@ class LifterMt {
 		add_filter( 'manage_llms_school_posts_columns' , array( $this, 'llms_school_custom_columns' ) );
 		add_action( 'manage_llms_school_posts_custom_column' , array( $this, 'fill_llms_school_column' ), 10, 2 );
 
-		add_filter( 'woocommerce_account_menu_items', array( $this, 'alter_wc_account_menu' ) );
-		add_filter( 'init', array( $this, 'add_my_school_endpoint' ) );
-		add_action( 'woocommerce_account_log-history_endpoint', array( $this, 'show_my_reports' ) );
+		add_filter( 'llms_get_student_dashboard_tabs', array( $this, 'add_my_school_endpoint' ) );
 	}
 
-	public function add_my_school_endpoint() {
-		add_rewrite_endpoint( 'my-school-report', EP_PAGES );
+	public static function load_page() {
+		$path = dirname( __DIR__ ) . '/resources/views/school.php';
+		llms_get_template( 'school.php', array( 'school' => new stdClass() ), __DIR__ . '/resources/views' );
 	}
 
-	public function alter_wc_account_menu( $menu_items ) {
+	public function add_my_school_endpoint( $menu_items ) {
 
 		if ( ! $this->is_school_admin() ) {
 			return $menu_items;
 		}
 
-		$menu_items                     = Arr::only( 'dashboard', 'logout', 'customer-logout' );
-		$menu_items['my-school-report'] = 'My School Report';
+		$menu_items['my-school-reports'] = array(
+			'content'  => __CLASS__ . '::show_school_details',
+			'endpoint' => 'my-school-reports',
+			'nav_item' => true,
+			'title'    => __( 'Reports', 'lifterlms' ),
+		);
 
 		return $menu_items;
 	}
@@ -262,6 +265,7 @@ class LifterMt {
 	}
 
 	public function enqueue_scripts() {
+
 	}
 
 	public function load_language() {
@@ -316,27 +320,27 @@ class LifterMt {
 			array( $this, 'show_school_details' )
 		);
 
-		if ( isset( $_GET['page'] ) && $_GET['page'] === 'llms_students_export' ) {
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_students_export' ) {
 			Student::download();
 			die;
 		}
 
-		if ( isset( $_GET['page'] ) && $_GET['page'] === 'llms_groups_export' ) {
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_groups_export' ) {
 			Group::download();
 			die;
 		}
 
-		if ( isset( $_GET['page'] ) && $_GET['page'] === 'llms_course_export' ) {
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_course_export' ) {
 			Course::download();
 			die;
 		}
 
-		if ( isset( $_GET['page'] ) && $_GET['page'] === 'llms_quiz_export' ) {
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_quiz_export' ) {
 			Quiz::download();
 			die;
 		}
 
-		if ( isset( $_GET['page'] ) && $_GET['page'] === 'llms_assignment_export' ) {
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_assignment_export' ) {
 			Assigment::download();
 			die;
 		}
@@ -363,8 +367,6 @@ class LifterMt {
 	public function get_school_details_url( $post = null, $args = array() ) {
 		$post = get_post( $post );
 
-		$view_link = admin_url( 'admin.php' );
-
 		$args = array_merge(
 			array(
 				'page'      => 'llms_school_details',
@@ -374,6 +376,13 @@ class LifterMt {
 			),
 			$args
 		);
+
+			$view_link = admin_url( 'admin.php' );
+		if ( ! $this->is_school_admin() ) {
+			global $wp;
+			$view_link = home_url( $wp->requeost );
+			unset( $args['page'] );
+		}
 
 		return add_query_arg( $args, $view_link );
 	}

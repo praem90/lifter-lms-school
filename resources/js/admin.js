@@ -27,13 +27,13 @@ jQuery(function() {
 			{data: 'action', title: 'Action', render: function (d, i, row) {
 				const url = new URL(location.href);
 
-				url.searchParams.set('page', 'llms_course_export')
+				url.searchParams.delete('page')
+				url.searchParams.set('tab', 'llms_course_export')
 				url.searchParams.set('student_id', row.ID)
-				url.searchParams.set('school_id', jQuery('input#llms_school_id').val());
 				const course_url = url.href;
-				url.searchParams.set('page', 'llms_quiz_export');
+				url.searchParams.set('tab', 'llms_quiz_export');
 				const quiz_url = url.href;
-				url.searchParams.set('page', 'llms_assignment_export');
+				url.searchParams.set('tab', 'llms_assignment_export');
 				const assignment_url = url.href;
 
 				const html = `<div class="dropdown">
@@ -79,20 +79,20 @@ jQuery(function() {
 			{data: 'students_count', title: 'Students Count'},
 			{data: 'action', title: 'Action', render: function (d, i, row) {
 				const url = new URL(location.href);
+				url.searchParams.delete('page');
 
 				url.searchParams.set('group_id', row.ID)
-				url.searchParams.set('school_id', jQuery('input#llms_school_id').val());
 
-				url.searchParams.set('page', 'llms_course_export')
+				url.searchParams.set('tab', 'llms_course_export')
 				const course_url = url.href;
 
-				url.searchParams.set('page', 'llms_students_export')
+				url.searchParams.set('tab', 'llms_students_export')
 				const student_url = url.href;
 
-				url.searchParams.set('page', 'llms_quiz_export');
+				url.searchParams.set('tab', 'llms_quiz_export');
 				const quiz_url = url.href;
 
-				url.searchParams.set('page', 'llms_assignment_export');
+				url.searchParams.set('tab', 'llms_assignment_export');
 				const assignment_url = url.href;
 
 				const html = `<div class="dropdown">
@@ -112,11 +112,7 @@ jQuery(function() {
 	jQuery(document).on('click', '#export_students', function () {
 		const url = new URL(jQuery(this).attr('href'));
 
-		url.searchParams.delete('post');
-		url.searchParams.append('post',jQuery('input#llms_school_id').val() );
-		url.searchParams.append('school_id',jQuery('input#llms_school_id').val() );
 		url.searchParams.delete('page');
-		url.searchParams.append('page', 'llms_students_export');
 		url.searchParams.append('class', jQuery(this).parents('.row').find('select').eq(0).val());
 		url.searchParams.append('section', jQuery(this).parents('.row').find('select').eq(1).val());
 
@@ -126,11 +122,7 @@ jQuery(function() {
 	jQuery(document).on('click', '#export_groups', function () {
 		const url = new URL(jQuery(this).attr('href'));
 
-		url.searchParams.delete('post');
-		url.searchParams.append('post',jQuery('input#llms_school_id').val() );
 		url.searchParams.delete('page');
-		url.searchParams.append('school_id',jQuery('input#llms_school_id').val() );
-		url.searchParams.append('page', 'llms_groups_export');
 		url.searchParams.append('class', jQuery(this).parents('.row').find('select').eq(0).val());
 		url.searchParams.append('section', jQuery(this).parents('.row').find('select').eq(1).val());
 

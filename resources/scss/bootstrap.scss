@@ -1,6 +1,10 @@
-
 .llms-school-wrapper {
     @import "~bootstrap/scss/bootstrap";
 
+    .dropdown {
+        position: relative;
+        width: auto !important;
+        overflow: auto;
+    }
 }
 
