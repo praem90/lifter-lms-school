@@ -2,8 +2,6 @@
 
 namespace Lifter\MT;
 
-use Illuminate\Support\Arr;
-
 class LifterMt {
 
 	const VERSION = '0.0.1';
@@ -46,8 +44,9 @@ class LifterMt {
 	}
 
 	public static function load_page() {
+		( new self() )->show_school_details();
 		$path = dirname( __DIR__ ) . '/resources/views/school.php';
-		llms_get_template( 'school.php', array( 'school' => new stdClass() ), __DIR__ . '/resources/views' );
+		llms_get_template( 'school.php', array( 'school' => new stdClass() ), dirname( __DIR__ ) . '/resources/views' );
 	}
 
 	public function add_my_school_endpoint( $menu_items ) {
@@ -56,14 +55,18 @@ class LifterMt {
 			return $menu_items;
 		}
 
-		$menu_items['my-school-reports'] = array(
-			'content'  => __CLASS__ . '::show_school_details',
+		$new_items                = array();
+		$new_items['view-groups'] = $menu_items['view-groups'];
+
+		$new_items['my-school-reports'] = array(
+			'content'  => __CLASS__ . '::load_page',
 			'endpoint' => 'my-school-reports',
 			'nav_item' => true,
 			'title'    => __( 'Reports', 'lifterlms' ),
 		);
+		$new_items['signout']           = $menu_items['signout'];
 
-		return $menu_items;
+		return $new_items;
 	}
 
 	public function load_acf_head() {
@@ -204,6 +207,7 @@ class LifterMt {
 	}
 
 	public function enque_acf_scripts() {
+		add_rewrite_endpoint( 'my-school-report', EP_PAGES );
 
 		add_action(
 			'llms_group_profile_after_settings',
@@ -239,6 +243,31 @@ class LifterMt {
 	public function register_routes() {
 		add_action( 'wp_ajax_llms_school_get', array( Student::class, 'get_all' ) );
 		add_action( 'wp_ajax_llms_group_get', array( Group::class, 'get_all' ) );
+
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_students_export' ) {
+			Student::download();
+			die;
+		}
+
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_groups_export' ) {
+			Group::download();
+			die;
+		}
+
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_course_export' ) {
+			Course::download();
+			die;
+		}
+
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_quiz_export' ) {
+			Quiz::download();
+			die;
+		}
+
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_assignment_export' ) {
+			Assigment::download();
+			die;
+		}
 	}
 
 	public function enqueue_admin_scripts() {
@@ -248,7 +277,7 @@ class LifterMt {
 		wp_enqueue_script( 'dataTable', 'https://cdn.datatables.net/v/bs5/dt-1.11.3/datatables.min.js' , array( 'jquery' ), '1.11.3', true );
 		wp_enqueue_style( 'dataTable', 'https://cdn.datatables.net/v/bs5/dt-1.11.3/datatables.min.css' , array(), '1.11.3' );
 
-		wp_enqueue_style( 'lifter-mt', plugins_url( 'resources/dist/base.css', dirname( __FILE__ ) ), array(), self::VERSION, true );
+		// wp_enqueue_style( 'lifter-mt', plugins_url( 'resources/dist/base.css', dirname( __FILE__ ) ), array(), self::VERSION, true );
 		wp_enqueue_script( 'lifter-mt', plugins_url( 'resources/dist/admin.js', dirname( __FILE__ ) ), array( 'jquery' ), self::VERSION, true );
 	}
 
@@ -320,30 +349,6 @@ class LifterMt {
 			array( $this, 'show_school_details' )
 		);
 
-		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_students_export' ) {
-			Student::download();
-			die;
-		}
-
-		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_groups_export' ) {
-			Group::download();
-			die;
-		}
-
-		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_course_export' ) {
-			Course::download();
-			die;
-		}
-
-		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_quiz_export' ) {
-			Quiz::download();
-			die;
-		}
-
-		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_assignment_export' ) {
-			Assigment::download();
-			die;
-		}
 	}
 
 	public function register_school_row_actions( $actions, $post = false ) {
@@ -377,10 +382,10 @@ class LifterMt {
 			$args
 		);
 
-			$view_link = admin_url( 'admin.php' );
-		if ( ! $this->is_school_admin() ) {
+		$view_link = admin_url( 'admin.php' );
+		if ( $this->is_school_admin() ) {
 			global $wp;
-			$view_link = home_url( $wp->requeost );
+			$view_link = home_url( $wp->request );
 			unset( $args['page'] );
 		}
 
