@@ -23,29 +23,35 @@ Reports
 	<input id="llms_school_id" type="hidden" value="<?php echo $school->ID; ?>"/>
 	<!-- Print the page title -->
 	<!-- Here are our tabs -->
-	<nav class="nav-tab-wrapper">
-		<a href="<?php echo esc_url( $this->get_school_details_url( $school ) ); ?>" class="nav-tab
+	<ul class="nav nav-tabs">
+		<li class="nav-item">
+		<a href="<?php echo esc_url( $this->get_school_details_url( $school ) ); ?>" class="nav-link
 							<?php
 							if ( $tab === 'details' ) :
 								?>
- nav-tab-active<?php endif; ?>">
+ active<?php endif; ?>">
 			<?php echo esc_html__( 'School', 'llms-school' ); ?>
 		</a>
-	  <a href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'tab' => 'students' ) ) ); ?>" class="nav-tab
+</li>
+		<li class="nav-item">
+	  <a href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'tab' => 'students' ) ) ); ?>" class="nav-link
 						  <?php
 							if ( $tab === 'students' ) :
 								?>
- nav-tab-active<?php endif; ?>">
+active<?php endif; ?>">
 			<?php echo esc_html__( 'Students', 'llms-school' ); ?>
 	  </a>
-	  <a href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'tab' => 'groups' ) ) ); ?>" class="nav-tab
+</li>
+		<li class="nav-item">
+	  <a href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'tab' => 'groups' ) ) ); ?>" class="nav-link
 						  <?php
 							if ( $tab === 'groups' ) :
 								?>
- nav-tab-active<?php endif; ?>">
+ active<?php endif; ?>">
 			<?php echo esc_html__( 'Groups', 'llms-school' ); ?>
 	  </a>
-	</nav>
+</li>
+	</ul>
 
 	<div class="tab-content">
 	<?php require __DIR__ . '/school-' . $tab . '.php'; ?>
