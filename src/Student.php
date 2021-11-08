@@ -129,7 +129,17 @@ class Student {
 		}
 
 		if ( isset( $filters['search']['value'] ) ) {
-			$query->where( 'display_name', 'like', '%' . $filters['search']['value'] . '%' );
+			$search = $filters['search']['value'];
+			$query->where(
+				function ( $query ) use ( $search ) {
+					$query->orWhere( 'display_name', 'like', '%' . $search . '%' );
+					$meta_query = wpFluent()->table( 'usermeta' )
+								->where( 'meta_key', '=', 'manual_id' )
+								->where( 'meta_value', 'like', '%' . $search . '%' )
+								->select( 'user_id' );
+					$query->orWhere( wpFluent()->raw( 'ID in (' . $meta_query->getQuery()->getRawSql() . ')' ) );
+				}
+			);
 		}
 
 		$query->limit( Arr::get( $filters, 'length', 25 ) );

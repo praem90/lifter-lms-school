@@ -155,8 +155,8 @@ class Group {
 				$group['membership'] = Arr::first(
 					$memberships,
 					function( $school ) use ( $group ) {
-						return $school->ID === (int) Arr::get( $group, '_llms_post_id' );
-					},
+						return intval( Arr::get( $group, '_llms_post_id' ) ) === $school->ID;
+					}
 				);
 				return $group;
 			},
@@ -177,11 +177,11 @@ class Group {
 				$user_count = Arr::first(
 					$courses,
 					function( $course ) use ( $student ) {
-						return $course['post_id'] === $student['ID'];
+						return $course['post_id'] === $student['_llms_post_id'];
 					}
 				);
 
-				$student['courses_count'] = $user_count ? count( unserialize( $user_count['_llms_post_id'] ) ) : 0;
+				$student['courses_count'] = $user_count ? count( unserialize( $user_count['meta_value'] ) ) : 0;
 
 				return $student;
 			},

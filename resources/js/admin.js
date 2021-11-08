@@ -1,12 +1,14 @@
 jQuery(function() {
-	jQuery('#students-table').dataTable({
+	const studentsDtTable = jQuery('#students-table').DataTable({
 		"processing": true,
 		"serverSide": true,
 		"ajax": {
 			"url": ajaxurl,
 			data: function(d) {
-				d.action = 'llms_school_get'
-				d.school_id = jQuery('input#llms_school_id').val()
+				d.action = 'llms_school_get';
+				d.school_id = jQuery('input#llms_school_id').val();
+				d.class = jQuery('.acf-input select').eq(0).val();
+				d.section = jQuery('.acf-input select').eq(1).val();
 			},
 		},
 		columns: [
@@ -50,7 +52,7 @@ jQuery(function() {
 		],
 	});
 
-	jQuery('#groups-table').dataTable({
+	const groups_table = jQuery('#groups-table').DataTable({
 		"processing": true,
 		"serverSide": true,
 		"ajax": {
@@ -58,6 +60,8 @@ jQuery(function() {
 			data: function(d) {
 				d.action = 'llms_group_get'
 				d.school_id = jQuery('input#llms_school_id').val()
+				d.class = jQuery('.acf-input select').eq(0).val();
+				d.section = jQuery('.acf-input select').eq(1).val();
 			},
 		},
 		columns: [
@@ -132,5 +136,11 @@ jQuery(function() {
 	jQuery(document).on('submit', '#group_school_info', function (e) {
 		e.preventDefault();
 		console.log(this);
+	});
+
+	jQuery('.acf-input select').change( () => {
+		console.log(studentsDtTable)
+		groups_table.draw();
+		studentsDtTable.draw();
 	});
 });
