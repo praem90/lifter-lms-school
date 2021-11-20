@@ -13,9 +13,9 @@ $tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'details';
 Reports
   </button>
   <ul class="dropdown-menu" aria-labelledby="dropdownMenuButtonSchool">
-		<li><a class="dropdown-item" href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'page' => 'llms_course_export' ) ) ); ?>">Course</a></li>
-		<li><a class="dropdown-item" href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'page' => 'llms_quiz_export' ) ) ); ?>">Quiz</a></li>
-		<li><a class="dropdown-item" href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'page' => 'llms_assignment_export' ) ) ); ?>">Assignment</a></li>
+		<li><a class="dropdown-item" href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'tab' => 'llms_course_export' ) ) ); ?>">Course</a></li>
+		<li><a class="dropdown-item" href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'tab' => 'llms_quiz_export' ) ) ); ?>">Quiz</a></li>
+		<li><a class="dropdown-item" href="<?php echo esc_url( $this->get_school_details_url( $school, array( 'tab' => 'llms_assignment_export' ) ) ); ?>">Assignment</a></li>
   </ul>
 </div>
 </div>

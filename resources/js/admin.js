@@ -133,13 +133,7 @@ jQuery(function() {
 		window.location = url;
 	});
 
-	jQuery(document).on('submit', '#group_school_info', function (e) {
-		e.preventDefault();
-		console.log(this);
-	});
-
 	jQuery('.acf-input select').change( () => {
-		console.log(studentsDtTable)
 		groups_table.draw();
 		studentsDtTable.draw();
 	});
