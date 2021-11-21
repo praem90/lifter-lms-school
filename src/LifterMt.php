@@ -8,150 +8,150 @@ class LifterMt {
 
 	public $plugin_basename;
 
-public function with_basename( $basename ) {
-	$this->plugin_basename = $basename;
+	public function with_basename( $basename ) {
+		$this->plugin_basename = $basename;
 
-	return $this;
-}
-
-public function boot() {
-	// $this->abort_if_basic_version_is_installed();
-
-	$this->register_hooks();
-}
-
-public function register_hooks() {
-	// add_filter( 'plugin_action_links_' . $this->plugin_basename, array( $this, 'action_link' ) );
-
-	add_action( 'init', array( $this, 'load_language' ) );
-	add_action( 'init', array( $this, 'enqueue_admin_scripts' ) );
-	add_action( 'init', array( $this, 'enque_acf_scripts' ) );
-	add_action( 'init', array( $this, 'register_routes' ) );
-	add_action( 'init', array( $this, 'register_schools_post_type' ) );
-
-	add_action( 'admin_menu', array( $this, 'add_admin_main_menu' ) );
-	add_action( 'post_row_actions', array( $this, 'register_school_row_actions' ) );
-	// add_action( 'admin_init', array( $this, 'enqueue_admin_scripts' ) );
-
-	add_action( 'wp_head', array( $this, 'load_acf_head' ) );
-	add_action( 'acf/save_post', array( $this, 'redirect_after_save_group' ) );
-
-	add_filter( 'enter_title_here', array( $this, 'my_title_place_holder' ) , 20 , 2 );
-	add_filter( 'manage_llms_school_posts_columns' , array( $this, 'llms_school_custom_columns' ) );
-	add_action( 'manage_llms_school_posts_custom_column' , array( $this, 'fill_llms_school_column' ), 10, 2 );
-
-	add_filter( 'llms_get_student_dashboard_tabs', array( $this, 'add_my_school_endpoint' ), 100 );
-	add_filter( 'llms_student_dashboard_default_tab', array( $this, 'get_school_admin_defaul_tab' ), 100 );
-
-	add_filter( 'views_edit-school', array( $this, 'add_school_export_button' ), 100 );
-}
-
-public function add_school_export_button( $views ) {
-
-	$views['export'] = '<a href="' . $this->get_school_details_url( 1, array( 'tab' => 'llms_schools_export' ) ) . '">Export</a>';
-
-	return $views;
-}
-
-public function get_school_admin_defaul_tab( $tab ) {
-	if ( $this->is_school_admin() ) {
-		$tab = 'view-groups';
+		return $this;
 	}
 
-	return $tab;
-}
+	public function boot() {
+		// $this->abort_if_basic_version_is_installed();
 
-public static function load_page() {
-	( new self() )->show_school_details();
-	llms_get_template( 'school.php', array( 'school' => new stdClass() ), dirname( __DIR__ ) . '/resources/views' );
-
-}
-
-public function add_my_school_endpoint( $menu_items ) {
-
-	if ( ! $this->is_school_admin() ) {
-		return $menu_items;
-	}
-	$new_items                = array();
-	$new_items['view-groups'] = $menu_items['view-groups'];
-
-	$new_items['my-school-reports'] = array(
-		'content'  => __CLASS__ . '::load_page',
-		'endpoint' => 'my-school-reports',
-		'nav_item' => true,
-		'title'    => __( 'Reports', 'lifterlms' ),
-	);
-
-	$new_items['signout'] = $menu_items['signout'];
-
-	return $new_items;
-
-}
-
-public function load_acf_head() {
-	global $wp;
-	$path = add_query_arg( array(), $wp->request );
-	if ( strpos( $path, 'group/' ) === 0 ) {
-		acf_form_head();
-	}
-}
-
-public function redirect_after_save_group( $post_id ) {
-	if ( get_post_type( $post_id ) === 'llms_group' ) {
-		echo '<script>window.location.href = window.location.href;</script>';
-		die;
-	}
-}
-
-public function abort_if_basic_version_is_installed() {
-	if ( function_exists( 'llms' ) ) {
-		return;
+		$this->register_hooks();
 	}
 
-	$wschat = $this;
-	add_action(
-		'admin_notices',
-		function () use ( $wschat ) {
-			is_admin() && add_filter( 'gettext', array( $wschat, 'translate_wschat_admin_notice' ), 99, 3 );
-		},
-		99
-	);
-	deactivate_plugins( $this->plugin_basename );
+	public function register_hooks() {
+		// add_filter( 'plugin_action_links_' . $this->plugin_basename, array( $this, 'action_link' ) );
 
-	wp_die( 'This works with Lifter LMS WordPress plugin only' . esc_attr( admin_url( 'plugins.php' ) ) . "'>plugins page</a>" );
-}
+		add_action( 'init', array( $this, 'load_language' ) );
+		add_action( 'init', array( $this, 'enqueue_admin_scripts' ) );
+		add_action( 'init', array( $this, 'enque_acf_scripts' ) );
+		add_action( 'init', array( $this, 'register_routes' ) );
+		add_action( 'init', array( $this, 'register_schools_post_type' ) );
 
-public function llms_school_custom_columns( $columns ) {
-	$date = array_pop( $columns );
+		add_action( 'admin_menu', array( $this, 'add_admin_main_menu' ) );
+		add_action( 'post_row_actions', array( $this, 'register_school_row_actions' ) );
+		// add_action( 'admin_init', array( $this, 'enqueue_admin_scripts' ) );
 
-	$columns['school_id_manual'] = __( 'School ID' ) . ' ( ' . __( 'Manual' ) . ' )';
-	$columns['title']            = __( 'School Name' );
-	$columns['contact_name']     = __( 'Contact Name' );
-	$columns['contact_email']    = __( 'Contact Email' );
-	$columns['contact_mobile']   = __( 'Contact Mobile' );
-	$columns['students']         = __( 'Students' );
-	$columns['groups']           = __( 'Groups Assigned' );
-	$columns['memberships']      = __( 'Membership Assigned' );
-	$columns['date']             = $date;
+		add_action( 'wp_head', array( $this, 'load_acf_head' ) );
+		add_action( 'acf/save_post', array( $this, 'redirect_after_save_group' ) );
 
-	return $columns;
-}
+		add_filter( 'enter_title_here', array( $this, 'my_title_place_holder' ) , 20 , 2 );
+		add_filter( 'manage_llms_school_posts_columns' , array( $this, 'llms_school_custom_columns' ) );
+		add_action( 'manage_llms_school_posts_custom_column' , array( $this, 'fill_llms_school_column' ), 10, 2 );
 
-public function fill_llms_school_column( $column, $post_id ) {
-	$columns = array(
-		'school_id_manual',
-		'contact_name',
-		'contact_email',
-		'contact_mobile',
-	);
+		add_filter( 'llms_get_student_dashboard_tabs', array( $this, 'add_my_school_endpoint' ), 100 );
+		add_filter( 'llms_student_dashboard_default_tab', array( $this, 'get_school_admin_defaul_tab' ), 100 );
 
-	if ( in_array( $column, $columns ) ) {
-		echo get_post_meta( $post_id, $column, true );
+		add_filter( 'views_edit-school', array( $this, 'add_school_export_button' ), 100 );
 	}
 
-	// TODO: It seems like groups and membership has one on one relation
-	if ( 'groups' === $column || 'memberships' === $column ) {
-		echo wpFluent()->table( 'posts' )->where( 'post_type', '=', 'llms_group' )
+	public function add_school_export_button( $views ) {
+
+		$views['export'] = '<a href="' . $this->get_school_details_url( 1, array( 'tab' => 'llms_schools_export' ) ) . '">Export</a>';
+
+		return $views;
+	}
+
+	public function get_school_admin_defaul_tab( $tab ) {
+		if ( $this->is_school_admin() ) {
+			$tab = 'view-groups';
+		}
+
+		return $tab;
+	}
+
+	public static function load_page() {
+		( new self() )->show_school_details();
+		llms_get_template( 'school.php', array( 'school' => new stdClass() ), dirname( __DIR__ ) . '/resources/views' );
+
+	}
+
+	public function add_my_school_endpoint( $menu_items ) {
+
+		if ( ! $this->is_school_admin() ) {
+			return $menu_items;
+		}
+		$new_items                = array();
+		$new_items['view-groups'] = $menu_items['view-groups'];
+
+		$new_items['my-school-reports'] = array(
+			'content'  => __CLASS__ . '::load_page',
+			'endpoint' => 'my-school-reports',
+			'nav_item' => true,
+			'title'    => __( 'Reports', 'lifterlms' ),
+		);
+
+		$new_items['signout'] = $menu_items['signout'];
+
+		return $new_items;
+
+	}
+
+	public function load_acf_head() {
+		global $wp;
+		$path = add_query_arg( array(), $wp->request );
+		if ( strpos( $path, 'group/' ) === 0 ) {
+			acf_form_head();
+		}
+	}
+
+	public function redirect_after_save_group( $post_id ) {
+		if ( get_post_type( $post_id ) === 'llms_group' ) {
+			echo '<script>window.location.href = window.location.href;</script>';
+			die;
+		}
+	}
+
+	public function abort_if_basic_version_is_installed() {
+		if ( function_exists( 'llms' ) ) {
+			return;
+		}
+
+		$wschat = $this;
+		add_action(
+			'admin_notices',
+			function () use ( $wschat ) {
+				is_admin() && add_filter( 'gettext', array( $wschat, 'translate_wschat_admin_notice' ), 99, 3 );
+			},
+			99
+		);
+		deactivate_plugins( $this->plugin_basename );
+
+		wp_die( 'This works with Lifter LMS WordPress plugin only' . esc_attr( admin_url( 'plugins.php' ) ) . "'>plugins page</a>" );
+	}
+
+	public function llms_school_custom_columns( $columns ) {
+		$date = array_pop( $columns );
+
+		$columns['school_id_manual'] = __( 'School ID' ) . ' ( ' . __( 'Manual' ) . ' )';
+		$columns['title']            = __( 'School Name' );
+		$columns['contact_name']     = __( 'Contact Name' );
+		$columns['contact_email']    = __( 'Contact Email' );
+		$columns['contact_mobile']   = __( 'Contact Mobile' );
+		$columns['students']         = __( 'Students' );
+		$columns['groups']           = __( 'Groups Assigned' );
+		$columns['memberships']      = __( 'Membership Assigned' );
+		$columns['date']             = $date;
+
+		return $columns;
+	}
+
+	public function fill_llms_school_column( $column, $post_id ) {
+		$columns = array(
+			'school_id_manual',
+			'contact_name',
+			'contact_email',
+			'contact_mobile',
+		);
+
+		if ( in_array( $column, $columns ) ) {
+			echo get_post_meta( $post_id, $column, true );
+		}
+
+		// TODO: It seems like groups and membership has one on one relation
+		if ( 'groups' === $column || 'memberships' === $column ) {
+			echo wpFluent()->table( 'posts' )->where( 'post_type', '=', 'llms_group' )
 								->join(
 									'postmeta',
 									function ( $table ) use ( $post_id ) {
@@ -160,133 +160,134 @@ public function fill_llms_school_column( $column, $post_id ) {
 										$table->on( 'postmeta.meta_value', '=', wpFluent()->raw( $post_id ) );
 									}
 								)->count();
-	}
+		}
 
-	if ( 'students' === $column ) {
-		$role_query = Student::get_student_role_query();
-		echo wpFluent()->table( 'usermeta' )->where( 'meta_value', '=', $post_id )
+		if ( 'students' === $column ) {
+			$role_query = Student::get_student_role_query();
+			echo wpFluent()->table( 'usermeta' )->where( 'meta_value', '=', $post_id )
 								   ->where( 'meta_key', 'school' )
 								   ->where( wpFluent()->raw( ' user_id in (' . $role_query->getQuery()->getRawSql() . ')' ) )
 								   ->count();
-	}
-
-}
-
-public function my_title_place_holder( $title, $post ) {
-
-	if ( 'llms_school' === $post->post_type ) {
-		$my_title = 'School Name';
-		return $my_title;
-	}
-
-	return $title;
-
-}
-
-public function register_schools_post_type() {
-	add_rewrite_endpoint( 'my-school-reports', EP_PAGES );
-
-	register_post_type(
-		'llms_school',
-		array(
-			'labels'              => array(
-				'name'               => __( 'Schools', 'lifterlms-schools' ),
-				'title'              => __( 'Name', 'lifterlms-schools' ),
-				'singular_name'      => __( 'School', 'lifterlms-schools' ),
-				'menu_name'          => _x( 'Schools', 'Admin menu name', 'lifterlms-schools' ),
-				'add_new'            => __( 'Add School', 'lifterlms-schools' ),
-				'add_new_item'       => __( 'Add New School', 'lifterlms-schools' ),
-				'edit'               => __( 'Edit', 'lifterlms-schools' ),
-				'edit_item'          => __( 'Edit School', 'lifterlms-schools' ),
-				'new_item'           => __( 'New School', 'lifterlms-schools' ),
-				'view'               => __( 'View School', 'lifterlms-schools' ),
-				'view_item'          => __( 'View School', 'lifterlms-schools' ),
-				'search_items'       => __( 'Search Schools', 'lifterlms-schools' ),
-				'not_found'          => __( 'No Schools found', 'lifterlms-schools' ),
-				'not_found_in_trash' => __( 'No Schools found in trash', 'lifterlms-schools' ),
-				'parent'             => __( 'Parent School', 'lifterlms-schools' ),
-			),
-			'description'         => __( 'This is where you can add new schools.', 'lifterlms-schools' ),
-			'public'              => true,
-			'show_ui'             => true,
-			// 'capabilities'        => LLMS_Post_Types::get_post_type_caps('school'),
-			'map_meta_cap'        => true,
-			'publicly_queryable'  => true,
-			'exclude_from_search' => false,
-			'hierarchical'        => false,
-			'rewrite'             => array(
-				'slug'       => _x( 'school', 'school url slug', 'lifterlms-schools' ),
-				'with_front' => false,
-				'feeds'      => true,
-			),
-			'query_var'           => true,
-			'supports'            => array( 'title', 'thumbnail' ),
-			'has_archive'         => false,
-			'show_in_nav_menus'   => false,
-		)
-	);
-}
-
-public function enque_acf_scripts() {
-
-	add_action(
-		'llms_group_profile_after_settings',
-		function () {
-			global $wp;
-			acf_form(
-				[
-					'id'                 => 'group_school_info',
-					'post_id'            => get_post()->id,
-					'field_groups'       => [ 'group_617d20b979be4' ],
-					'html_submit_button' => '<footer class="llms-group-card-footer"><button class="llms-button-primary button-right llms-group-button" type="submit"><i class="fa fa-floppy-o" aria-hidden="true"></i> Save</button></footer>',
-				]
-			);
 		}
-	);
-}
 
-public function translate_wschat_admin_notice( $translated_text, $untranslated_text ) {
-	$old        = array(
-		'Plugin <strong>activated</strong>.',
-		'Selected plugins <strong>activated</strong>.',
-	);
-	$error_text = 'BASIC Version of this Plugin Installed. Please uninstall the BASIC Version before activating PREMIUM.';
-	$new        = "<span style='color:red'>" . $error_text . '</span>';
-
-	if ( in_array( $untranslated_text, $old, true ) ) {
-		$translated_text = $new;
 	}
 
-	return $translated_text;
-}
+	public function my_title_place_holder( $title, $post ) {
 
-public function register_routes() {
-	add_action( 'wp_ajax_llms_school_get', array( Student::class, 'get_all' ) );
-	add_action( 'wp_ajax_llms_group_get', array( Group::class, 'get_all' ) );
+		if ( 'llms_school' === $post->post_type ) {
+			$my_title = 'School Name';
+			return $my_title;
+		}
 
-	if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_students_export' ) {
-		Student::download();
-		die;
+		return $title;
+
 	}
 
-	if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_groups_export' ) {
-		Group::download();
-		die;
+	public function register_schools_post_type() {
+		add_rewrite_endpoint( 'my-school-reports', EP_PAGES );
+
+		register_post_type(
+			'llms_school',
+			array(
+				'labels'              => array(
+					'name'               => __( 'Schools', 'lifterlms-schools' ),
+					'title'              => __( 'Name', 'lifterlms-schools' ),
+					'singular_name'      => __( 'School', 'lifterlms-schools' ),
+					'menu_name'          => _x( 'Schools', 'Admin menu name', 'lifterlms-schools' ),
+					'add_new'            => __( 'Add School', 'lifterlms-schools' ),
+					'add_new_item'       => __( 'Add New School', 'lifterlms-schools' ),
+					'edit'               => __( 'Edit', 'lifterlms-schools' ),
+					'edit_item'          => __( 'Edit School', 'lifterlms-schools' ),
+					'new_item'           => __( 'New School', 'lifterlms-schools' ),
+					'view'               => __( 'View School', 'lifterlms-schools' ),
+					'view_item'          => __( 'View School', 'lifterlms-schools' ),
+					'search_items'       => __( 'Search Schools', 'lifterlms-schools' ),
+					'not_found'          => __( 'No Schools found', 'lifterlms-schools' ),
+					'not_found_in_trash' => __( 'No Schools found in trash', 'lifterlms-schools' ),
+					'parent'             => __( 'Parent School', 'lifterlms-schools' ),
+				),
+				'description'         => __( 'This is where you can add new schools.', 'lifterlms-schools' ),
+				'public'              => true,
+				'show_ui'             => true,
+				// 'capabilities'        => LLMS_Post_Types::get_post_type_caps('school'),
+				'map_meta_cap'        => true,
+				'publicly_queryable'  => true,
+				'exclude_from_search' => false,
+				'hierarchical'        => false,
+				'rewrite'             => array(
+					'slug'       => _x( 'school', 'school url slug', 'lifterlms-schools' ),
+					'with_front' => false,
+					'feeds'      => true,
+				),
+				'query_var'           => true,
+				'supports'            => array( 'title', 'thumbnail' ),
+				'has_archive'         => false,
+				'show_in_nav_menus'   => false,
+			)
+		);
 	}
 
-	if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_course_export' ) {
-		Course::download();
-		die;
+	public function enque_acf_scripts() {
+
+		add_action(
+			'llms_group_profile_after_settings',
+			function () {
+				global $wp;
+				acf_form(
+					[
+						'id'                 => 'group_school_info',
+						'post_id'            => get_post()->id,
+						'field_groups'       => [ 'group_617d20b979be4' ],
+						'html_submit_button' => '<footer class="llms-group-card-footer"><button class="llms-button-primary button-right llms-group-button" type="submit"><i class="fa fa-floppy-o" aria-hidden="true"></i> Save</button></footer>',
+					]
+				);
+			}
+		);
 	}
 
-	if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_quiz_export' ) {
-		Quiz::download();
-		die;
+	public function translate_wschat_admin_notice( $translated_text, $untranslated_text ) {
+		$old        = array(
+			'Plugin <strong>activated</strong>.',
+			'Selected plugins <strong>activated</strong>.',
+		);
+		$error_text = 'BASIC Version of this Plugin Installed. Please uninstall the BASIC Version before activating PREMIUM.';
+		$new        = "<span style='color:red'>" . $error_text . '</span>';
+
+		if ( in_array( $untranslated_text, $old, true ) ) {
+			$translated_text = $new;
+		}
+
+		return $translated_text;
 	}
 
-	if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_assignment_export' ) {
-		Assigment::download();
-		die;
+	public function register_routes() {
+		add_action( 'wp_ajax_llms_school_get', array( Student::class, 'get_all' ) );
+		add_action( 'wp_ajax_llms_group_get', array( Group::class, 'get_all' ) );
+
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_students_export' ) {
+			Student::download();
+			die;
+		}
+
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_groups_export' ) {
+			Group::download();
+			die;
+		}
+
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_course_export' ) {
+			Course::download();
+			die;
+		}
+
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_quiz_export' ) {
+			Quiz::download();
+			die;
+		}
+
+		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_assignment_export' ) {
+			Assigment::download();
+			die;
+		}
 
 		if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'llms_schools_export' ) {
 			School::download();
