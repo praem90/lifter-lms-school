@@ -192,29 +192,21 @@ class Group {
 	}
 
 	public function get_students_count( &$groups ) {
-		$membership_id = array_filter( Arr::pluck( $groups, 'membership.ID' ) );
+		$group_ids = Arr::pluck( $groups, 'ID' );
 
-		$courses = wpFluent()->table( 'lifterlms_user_postmeta' )
-			->where( 'meta_key', '_status' )
-			->where( 'meta_value', 'enrolled' )
-			->whereIn( 'post_id', $membership_id )
+		$group_users_count = wpFluent()->table( 'lifterlms_user_postmeta' )
+			->where( 'meta_key', '_group_role' )
+			->whereIn( 'post_id', $group_ids )
 			->select( wpFluent()->raw( 'count(user_id) as count, post_id' ) )
 			->groupBy( 'post_id' )
 			->get();
 
+		$group_users_count = collect( $group_users_count )->pluck( 'count', 'post_id' );
+
 		$groups = array_map(
-			function ( $student ) use ( $courses ) {
-				$user_count = Arr::first(
-					$courses,
-					function( $course ) use ( $student ) {
-						$membership = Arr::get( $student, 'membership' );
-						return $membership && $membership->ID === (int) $course['post_id'] ;
-					}
-				);
-
-				$student['students_count'] = $user_count ? $user_count['count'] : 0;
-
-				return $student;
+			function ( $group ) use ( $group_users_count ) {
+				$group['students_count'] = $group_users_count->get( $group['ID'], 0 );
+				return $group;
 			} ,
 			$groups
 		);

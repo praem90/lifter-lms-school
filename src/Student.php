@@ -70,8 +70,6 @@ class Student {
 			'section'               => $row['section'],
 			'llms_membership'       => $row['llms_membership'],
 			'llms_group'            => $row['llms_group'],
-			'llms_enrollment'       => isset( $row['llms_enrollment'] ) ? $row['llms_enrollment'] : '',
-			'llms_completion'       => isset( $row['llms_completion'] ) ? $row['llms_completion'] : '',
 			'llms_overall_progress' => Arr::get( $row, 'llms_overall_progress', 'N/A' ),
 			'llms_overall_grade'    => Arr::get( $row, 'llms_overall_grade', 'N/A' ),
 			'user_registered'       => $row['user_registered'],

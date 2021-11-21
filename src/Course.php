@@ -51,7 +51,8 @@ class Course {
 
 		$student_courses = $query->get();
 
-		$student_courses = array_map( [ $this, 'map_course_status' ], $student_courses );
+			$student_courses = $this->get_memberships( $student_courses );
+		$student_courses     = array_map( [ $this, 'map_course_status' ], $student_courses );
 
 		return $student_courses;
 	}
@@ -104,17 +105,65 @@ class Course {
 	}
 
 	public function query() {
-		$group_query = wpFluent()->table( 'posts' )->where( 'post_type', 'course' )
-			->select( 'post_id' );
-
 		$query = wpFluent()->table( 'lifterlms_user_postmeta' )
 			->join( 'posts', 'posts.ID', '=', 'lifterlms_user_postmeta.post_id' )
 			->where( 'meta_key', '_status' )
 			->where( 'posts.post_type', 'course' )
 			->select( 'user_id', 'post_id', 'posts.ID', 'posts.post_title' );
-			// ->where( wpFluent()->raw( 'post_id in (' . $group_query->getQuery()->getRawSql() . ')' ) );
 
 		return $query;
+	}
+
+	public function get_memberships( $courses ) {
+		$memberships = wpFluent()->table( 'posts' )
+						  ->join( 'postmeta', 'postmeta.post_id', '=', 'posts.ID' )
+						  ->where( 'posts.post_type', 'llms_membership' )
+						  ->where( 'postmeta.meta_key', '_llms_auto_enroll' )
+						  ->select( 'posts.ID', 'posts.post_title', 'postmeta.meta_value' );
+
+		$memberships->where(
+			function ( $q ) use ( $courses ) {
+				foreach ( $courses as $course ) {
+					$q->orWhere( 'meta_value', 'like', '%i:' . $course['ID'] . ';%' );
+				}
+			}
+		);
+
+		$memberships = collect( $memberships->get() )->map(
+			function ( $membership ) {
+				$membership['meta_value'] = unserialize( $membership['meta_value'] );
+				return $membership;
+			}
+		);
+
+		$groups = wpFluent()->table( 'posts' )
+						  ->join( 'postmeta', 'postmeta.post_id', '=', 'posts.ID' )
+							  ->where( 'meta_key', '_llms_post_id' )
+							  ->whereIn( 'meta_value', $memberships->pluck( 'ID' )->toArray() )
+						  ->select( 'posts.ID', 'posts.post_title', 'postmeta.meta_value' );
+
+		$groups = collect( $groups->get() )->keyBy( 'meta_value' );
+
+
+		$courses = array_map ( function ( $course ) use ($memberships, $groups){
+
+			$course['membership'] = $memberships->first(
+				function ( $membership ) use ( $course ) {
+					return in_array( $course['ID'], $membership['meta_value'] );
+				}
+			);
+
+			$course['group'] = [];
+
+			if ( $course['membership'] ) {
+				$course['group'] = $groups->get( $course['membership']['ID'] );
+			}
+
+			return $course;
+
+		}, $courses);
+
+		return $courses;
 	}
 
 	public function map_course_status( $student_course ) {
@@ -133,6 +182,12 @@ class Course {
 		$student_course['school_name']      = $this->school->post_title;
 		$student_course['class']            = get_user_meta( $student_course['user_id'], 'class' , true );
 		$student_course['section']          = get_user_meta( $student_course['user_id'], 'section' , true );
+
+
+		$student_course['group_id']        = Arr::get( $student_course, 'group.ID', '' );
+		$student_course['group_name']      = Arr::get( $student_course, 'group.post_title', '' );
+		$student_course['membership_id']   = Arr::get( $student_course, 'membership.ID', '' );
+		$student_course['membership_name'] = Arr::get( $student_course, 'membership.post_title', '' );
 
 		$student_course['course_id']                 = $student_course['ID'];
 		$student_course['course_name']               = $student_course['post_title'];
