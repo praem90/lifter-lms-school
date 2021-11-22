@@ -43,12 +43,12 @@ class LifterMt {
 		add_filter( 'llms_get_student_dashboard_tabs', array( $this, 'add_my_school_endpoint' ), 100 );
 		add_filter( 'llms_student_dashboard_default_tab', array( $this, 'get_school_admin_defaul_tab' ), 100 );
 
-		add_filter( 'views_edit-school', array( $this, 'add_school_export_button' ), 100 );
+		add_filter( 'views_edit-llms_school', array( $this, 'add_school_export_button' ), 100 );
 	}
 
 	public function add_school_export_button( $views ) {
 
-		$views['export'] = '<a href="' . $this->get_school_details_url( 1, array( 'tab' => 'llms_schools_export' ) ) . '">Export</a>';
+		$views['export'] = '<a href="' . $this->get_school_details_url( 2, array( 'tab' => 'llms_schools_export' ) ) . '">Export</a>';
 
 		return $views;
 	}
@@ -296,6 +296,11 @@ class LifterMt {
 	}
 
 	public function enqueue_admin_scripts() {
+		$page = isset($_GET['page']) ? sanitize_text_field($_GET['page']) : '';
+
+		if ('llms-course-builder' === $page) {
+			return;
+		}
 		wp_enqueue_script( 'bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js' , array( 'jquery' ), '5.1.3' );
 		wp_enqueue_style( 'bootstrap5', 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css' , array(), '5.1.3' );
 

@@ -60,7 +60,7 @@ class School {
 	public function map_item( $row ) {
 		$row = array(
 			'ID'               => $row['ID'],
-			'manual_id'        => isset( $row['manual_id'] ) ? $row['manual_id'] : $row['ID'],
+			'manual_id'        => isset( $row['school_id_manual'] ) ? $row['school_id_manual'] : $row['ID'],
 			'name'             => $row['post_title'],
 			'contact_name'     => Arr::get( $row, 'contact_name' ),
 			'contact_email'    => Arr::get( $row, 'contact_email' ),
@@ -103,7 +103,7 @@ class School {
 	}
 
 	public function get_query() {
-		$query = wpFluent()->table( 'posts' );
+		$query = wpFluent()->table( 'posts' )->where('post_type', 'llms_school');
 
 		return $query;
 	}
