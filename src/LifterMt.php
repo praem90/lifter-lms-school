@@ -235,7 +235,7 @@ class LifterMt {
 				global $wp;
 				acf_form(
 					[
-						'id'                 => 'group_school_info',
+						'id'                 => 'frm_group_school_info',
 						'post_id'            => get_post()->id,
 						'field_groups'       => [ 'group_617d20b979be4' ],
 						'html_submit_button' => '<footer class="llms-group-card-footer"><button class="llms-button-primary button-right llms-group-button" type="submit"><i class="fa fa-floppy-o" aria-hidden="true"></i> Save</button></footer>',
@@ -296,9 +296,9 @@ class LifterMt {
 	}
 
 	public function enqueue_admin_scripts() {
-		$page = isset($_GET['page']) ? sanitize_text_field($_GET['page']) : '';
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
 
-		if ('llms-course-builder' === $page) {
+		if ( 'llms-course-builder' === $page ) {
 			return;
 		}
 		wp_enqueue_script( 'bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js' , array( 'jquery' ), '5.1.3' );

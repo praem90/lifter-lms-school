@@ -73,7 +73,7 @@ class Student {
 			'llms_overall_progress' => Arr::get( $row, 'llms_overall_progress', 'N/A' ),
 			'llms_overall_grade'    => Arr::get( $row, 'llms_overall_grade', 'N/A' ),
 			'user_registered'       => $row['user_registered'],
-			'llms_last_seen'        => isset( $row['llms_last_seen'] ) ? $row['llms_last_seen'] : '',
+			'llms_last_seen'        => isset( $row['llms_last_login'] ) ? $row['llms_last_login'] : '',
 		);
 
 		return $row;

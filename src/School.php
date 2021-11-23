@@ -65,6 +65,11 @@ class School {
 			'contact_name'     => Arr::get( $row, 'contact_name' ),
 			'contact_email'    => Arr::get( $row, 'contact_email' ),
 			'contact_mobile'   => Arr::get( $row, 'contact_mobile' ),
+			'line_1'           => Arr::get( $row, 'line_1' ),
+			'line_2'           => Arr::get( $row, 'line_2' ),
+			'city'             => Arr::get( $row, 'city' ),
+			'state'            => Arr::get( $row, 'state' ),
+			'pincode'          => Arr::get( $row, 'pincode' ),
 			'students_count'   => Arr::get( $row, 'students_count' ),
 			'groups_count'     => Arr::get( $row, 'groups_count' ),
 			'membership_count' => Arr::get( $row, 'groups_count' ),
@@ -103,7 +108,7 @@ class School {
 	}
 
 	public function get_query() {
-		$query = wpFluent()->table( 'posts' )->where('post_type', 'llms_school');
+		$query = wpFluent()->table( 'posts' )->where( 'post_type', 'llms_school' );
 
 		return $query;
 	}
@@ -118,7 +123,7 @@ class School {
 
 		$query->select( 'user_id', 'meta_key', 'meta_value' );
 
-		$query->whereIn( 'meta_key', array( 'contact_email', 'contact_name', 'contact_mobile' ) );
+		$query->whereIn( 'meta_key', array( 'contact_email', 'contact_name', 'contact_mobile', 'line_1', 'line_2', 'city', 'state', 'pincode' ) );
 
 		$meta = $query->get();
 
