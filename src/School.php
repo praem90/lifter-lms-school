@@ -121,7 +121,7 @@ class School {
 	public function get_meta( &$groups ) {
 		$query = wpFluent()->table( 'postmeta' )->whereIn( 'post_id', Arr::pluck( $groups, 'ID' ) );
 
-		$query->select( 'user_id', 'meta_key', 'meta_value' );
+		$query->select( 'school_id', 'meta_key', 'meta_value' );
 
 		$query->whereIn( 'meta_key', array( 'contact_email', 'contact_name', 'contact_mobile', 'line_1', 'line_2', 'city', 'state', 'pincode' ) );
 
