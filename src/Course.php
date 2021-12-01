@@ -142,14 +142,21 @@ class Course {
 							  ->whereIn( 'meta_value', $memberships->pluck( 'ID' )->toArray() )
 						  ->select( 'posts.ID', 'posts.post_title', 'postmeta.meta_value' );
 
+		$school_group_query = wpFluent()->table( 'postmeta' )
+						   ->where( 'meta_key', '=', 'school' )
+						   ->where( 'meta_value', '=', $this->school->ID )
+						   ->select( 'post_id' );
+
+		$groups->where( wpFluent()->raw( 'ID in (' . $school_group_query->getQuery()->getRawSql() . ')' ) );
+
 		$groups = collect( $groups->get() )->keyBy( 'meta_value' );
 
 
 		$courses = array_map ( function ( $course ) use ($memberships, $groups){
 
 			$course['membership'] = $memberships->first(
-				function ( $membership ) use ( $course ) {
-					return in_array( $course['ID'], $membership['meta_value'] );
+				function ( $membership ) use ( $course , $groups) {
+					return $groups->has($membership['ID']) && in_array( $course['ID'], $membership['meta_value'] );
 				}
 			);
 
