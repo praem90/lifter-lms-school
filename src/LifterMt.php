@@ -44,6 +44,22 @@ class LifterMt {
 		add_filter( 'llms_student_dashboard_default_tab', array( $this, 'get_school_admin_defaul_tab' ), 100 );
 
 		add_filter( 'views_edit-llms_school', array( $this, 'add_school_export_button' ), 100 );
+
+		add_filter( 'woocommerce_billing_fields' , array( $this, 'change_company_name_to_organisation' ) );
+
+		add_filter(
+			'gamipress_leaderboards_leaderboard_pre_query_vars',
+			function( $query_vars ) {
+			$query_vars['items_per_page'] = 10;
+			$query_vars['max_items']      = 1000;
+			return $query_vars;
+			}
+		);
+	}
+
+	public function change_company_name_to_organisation( $fields ) {
+		$fields['billing_company']['label'] = 'Organisation Name';
+		return $fields;
 	}
 
 	public function add_school_export_button( $views ) {
@@ -84,8 +100,54 @@ class LifterMt {
 
 		$new_items['signout'] = $menu_items['signout'];
 
+		$new_items['orders'] = array(
+			'content'  => array( $this, 'custom_account_orders' ),
+			'endpoint' => get_option( 'lifterlms_myaccount_orders_endpoint', 'orders' ),
+			'nav_item' => true,
+			'title'    => __( 'Orders', 'lifterlms' ),
+		);
+
 		return $new_items;
 
+	}
+
+	public function custom_account_orders( $current_page ) {
+		global $wp;
+
+		if ( ! empty( $wp->query_vars ) ) {
+			foreach ( $wp->query_vars as $key => $value ) {
+				// Ignore pagename param.
+				if ( 'pagename' === $key ) {
+					continue;
+				}
+
+				if ( has_action( 'woocommerce_account_' . $key . '_endpoint' ) ) {
+					do_action( 'woocommerce_account_' . $key . '_endpoint', $value );
+					return;
+				}
+			}
+		}
+
+		$current_page    = empty( $current_page ) ? 1 : absint( $current_page );
+		$customer_orders = wc_get_orders(
+			apply_filters(
+				'woocommerce_my_account_my_orders_query',
+				array(
+					'customer' => get_current_user_id(),
+					'page'     => $current_page,
+					'paginate' => true,
+				)
+			)
+		);
+
+		wc_get_template(
+			'myaccount/orders.php',
+			array(
+				'current_page'    => absint( $current_page ),
+				'customer_orders' => $customer_orders,
+				'has_orders'      => 0 < $customer_orders->total,
+			)
+		);
 	}
 
 	public function load_acf_head() {

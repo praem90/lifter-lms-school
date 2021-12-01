@@ -75,6 +75,13 @@ class Group {
 		if ( count( $groups ) === 0 ) {
 			return $groups;
 		}
+		$groups = array_map(
+			function ( $group ) {
+				$group['guid'] = get_edit_post_link( $group['ID'] );
+				return $group;
+			},
+			$groups
+		);
 		$this->get_meta( $groups );
 
 		$this->get_membership( $groups );
