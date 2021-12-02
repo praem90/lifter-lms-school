@@ -153,7 +153,7 @@ class Group {
 		$memberships = get_posts(
 			array(
 				'post_type' => 'llms_membership',
-				'id__in'    => Arr::pluck( $groups, '_llms_post_id' ),
+				'include'   => Arr::pluck( $groups, '_llms_post_id' ),
 			)
 		);
 
@@ -161,8 +161,8 @@ class Group {
 			function ( $group ) use ( $memberships ) {
 				$group['membership'] = Arr::first(
 					$memberships,
-					function( $school ) use ( $group ) {
-						return intval( Arr::get( $group, '_llms_post_id' ) ) === $school->ID;
+					function( $membership ) use ( $group ) {
+						return intval( Arr::get( $group, '_llms_post_id' ) ) === $membership->ID;
 					}
 				);
 				return $group;
