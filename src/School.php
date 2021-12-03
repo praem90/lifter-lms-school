@@ -108,7 +108,7 @@ class School {
 	}
 
 	public function get_query() {
-		$query = wpFluent()->table( 'posts' )->where( 'post_type', 'llms_school' );
+		$query = wpFluent()->table( 'posts' )->where( 'post_type', 'llms_school' )->where( 'post_status', 'publish' );
 
 		return $query;
 	}
@@ -133,9 +133,11 @@ class School {
 	}
 
 	public function get_school( &$groups ) {
-		$students = wpFluent()->table( 'usermeta' )
+		$role_query = Student::get_student_role_query();
+		$students   = wpFluent()->table( 'usermeta' )
 			->where( 'meta_key', 'school' )
 			->whereIn( 'meta_value', Arr::pluck( $groups, 'ID' ) )
+			->where( wpFluent()->raw( ' user_id in (' . $role_query->getQuery()->getRawSql() . ')' ) )
 			->select( 'user_id' )
 			->groupBy( 'meta_value' )
 			->select( 'meta_value', wpFluent()->raw( 'count(user_id) as count' ) )
