@@ -123,7 +123,7 @@ class School {
 
 		$query->select( 'school_id', 'meta_key', 'meta_value' );
 
-		$query->whereIn( 'meta_key', array( 'contact_email', 'contact_name', 'contact_mobile', 'line_1', 'line_2', 'city', 'state', 'pincode' ) );
+		$query->whereIn( 'meta_key', array( 'contact_email', 'contact_name', 'school_id_manual', 'contact_mobile', 'line_1', 'line_2', 'city', 'state', 'pincode' ) );
 
 		$meta = $query->get();
 
@@ -168,7 +168,7 @@ class School {
 
 		$groups = collect( $groups )->pluck( 'count', 'meta_value' );
 
-		$groups = array_map(
+		$schools = array_map(
 			function ( $school ) use ( $groups ) {
 				$school['groups_count'] = $groups->get( $school['ID'], 0 );
 				return $school;

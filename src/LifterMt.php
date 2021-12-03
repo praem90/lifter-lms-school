@@ -55,15 +55,44 @@ class LifterMt {
 			return $query_vars;
 			}
 		);
+
+
+		add_filter( 'wp_new_user_notification_email', array( $this, 'update_reg_email_content' ) );
+
+		add_action(
+			'init',
+			function() {
+				remove_action( 'lifterlms_student_dashboard_index', 'lifterlms_template_student_dashboard_my_achievements' );
+				remove_action( 'lifterlms_student_dashboard_index', 'lifterlms_template_student_dashboard_my_memberships' );
+
+				if ( is_user_logged_in() && ! in_array( 'student', wp_get_current_user()->roles ) ) {
+					remove_action( 'lifterlms_student_dashboard_index', 'lifterlms_template_student_dashboard_my_courses', 10 );
+				}
+			}
+		);
+	}
+
+	public function update_reg_email_content( $email, $user ) {
+		$key = get_password_reset_key( $user );
+		if ( is_wp_error( $key ) ) {
+			return;
+		}
+		$message  = sprintf( __( 'Username: %s' ), $user->user_login ) . '<br />';
+		$message .= __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
+		$url      = network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user->user_login ), 'login' );
+		$message .= '<a href="' . $url . '" style="text-align: right; padding: 50px 0 30px; font-family: sans-serif; font-weight: normal; color: rgba(103, 108, 251, 1); font-size: 14px">Click here</a>' . "\r\n\r\n";
+
+		$email['message'] = $message;
+
+		return $email;
 	}
 
 	public function change_company_name_to_organisation( $fields ) {
-		$fields['billing_company']['label'] = 'Organisation Name';
+		$fields['billing_company']['label'] = 'School/Organization Name';
 		return $fields;
 	}
 
 	public function add_school_export_button( $views ) {
-
 		$views['export'] = '<a href="' . $this->get_school_details_url( 2, array( 'tab' => 'llms_schools_export' ) ) . '">Export</a>';
 
 		return $views;
@@ -84,12 +113,22 @@ class LifterMt {
 	}
 
 	public function add_my_school_endpoint( $menu_items ) {
+		unset( $menu_items['orders'] );
+		if ( $this->is_school_student() ) {
+			$menu_items['orders'] = array(
+				'content'  => array( $this, 'custom_account_orders' ),
+				'endpoint' => 'orders',
+				'nav_item' => true,
+				'title'    => __( 'Orders', 'lifterlms' ),
+			);
+		}
 
 		if ( ! $this->is_school_admin() ) {
 			return $menu_items;
 		}
 		$new_items                = array();
 		$new_items['view-groups'] = $menu_items['view-groups'];
+		$new_items['orders']      = $menu_items['orders'];
 
 		$new_items['my-school-reports'] = array(
 			'content'  => __CLASS__ . '::load_page',
@@ -100,54 +139,11 @@ class LifterMt {
 
 		$new_items['signout'] = $menu_items['signout'];
 
-		$new_items['orders'] = array(
-			'content'  => array( $this, 'custom_account_orders' ),
-			'endpoint' => get_option( 'lifterlms_myaccount_orders_endpoint', 'orders' ),
-			'nav_item' => true,
-			'title'    => __( 'Orders', 'lifterlms' ),
-		);
-
 		return $new_items;
-
 	}
 
-	public function custom_account_orders( $current_page ) {
-		global $wp;
-
-		if ( ! empty( $wp->query_vars ) ) {
-			foreach ( $wp->query_vars as $key => $value ) {
-				// Ignore pagename param.
-				if ( 'pagename' === $key ) {
-					continue;
-				}
-
-				if ( has_action( 'woocommerce_account_' . $key . '_endpoint' ) ) {
-					do_action( 'woocommerce_account_' . $key . '_endpoint', $value );
-					return;
-				}
-			}
-		}
-
-		$current_page    = empty( $current_page ) ? 1 : absint( $current_page );
-		$customer_orders = wc_get_orders(
-			apply_filters(
-				'woocommerce_my_account_my_orders_query',
-				array(
-					'customer' => get_current_user_id(),
-					'page'     => $current_page,
-					'paginate' => true,
-				)
-			)
-		);
-
-		wc_get_template(
-			'myaccount/orders.php',
-			array(
-				'current_page'    => absint( $current_page ),
-				'customer_orders' => $customer_orders,
-				'has_orders'      => 0 < $customer_orders->total,
-			)
-		);
+	public function custom_account_orders() {
+		do_action( 'woocommerce_account_orders_endpoint', '' );
 	}
 
 	public function load_acf_head() {
@@ -425,6 +421,15 @@ class LifterMt {
 	public function is_school_admin() {
 		$school_admin_role = apply_filters( 'llms_school_admin_role', 'school-admin' );
 		if ( in_array( $school_admin_role, wp_get_current_user()->roles ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public function is_school_student() {
+		$school_student_role = apply_filters( 'llms_school_student_role', 'school-student' );
+		if ( in_array( $school_student_role, wp_get_current_user()->roles ) ) {
 			return true;
 		}
 

@@ -74,7 +74,7 @@ jQuery(function() {
 				if (!d) {
 					return 'N/A';
 				}
-				let html = `<a href="${d.guid}" target="_blank">${d.post_title}</a>`;
+				let html = d.post_title;
 				return html;
 			}},
 			{data: 'courses_count', title: 'No of Courses'},

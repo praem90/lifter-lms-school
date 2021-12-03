@@ -185,7 +185,7 @@ class Course {
 		$student_course['student_email']     = $student->user_email;
 
 		$student_course['school_system_id'] = $this->school->ID;
-		$student_course['school_manual_id'] = get_post_meta( $this->school, 'school_manual_id', true );
+		$student_course['school_manual_id'] = get_post_meta( $this->school, 'school_id_manual', true );
 		$student_course['school_name']      = $this->school->post_title;
 		$student_course['class']            = get_user_meta( $student_course['user_id'], 'class' , true );
 		$student_course['section']          = get_user_meta( $student_course['user_id'], 'section' , true );
@@ -200,7 +200,7 @@ class Course {
 		$student_course['course_name']               = $student_course['post_title'];
 		$student_course['course_status']             = llms_get_enrollment_status_name( $student->get_enrollment_status( $student_course['ID'] ) );
 		$student_course['course_enrollment_updated'] = $student->get_enrollment_date( $student_course['ID'], 'updated' );
-		$student_course['course_completed']          = $student->get_completion_date( $student_course['ID'] );
+		$student_course['course_completed %']          = $student->get_completion_date( $student_course['ID'] );
 		$student_course['course_progress']           = $student->get_progress( $student_course['ID'] );
 		$student_course['course_grade']              = $student->get_grade( $student_course['ID'] );
 		unset($student_course['group']);

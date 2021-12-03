@@ -149,7 +149,7 @@ class Assigment {
 		$quiz_item['student_email'] = $student->user_email;
 
 		$quiz_item['school_system_id'] = $this->school->ID;
-		$quiz_item['school_manual_id'] = get_post_meta( $this->school, 'school_manual_id', true );
+		$quiz_item['school_manual_id'] = get_post_meta( $this->school, 'school_id_manual', true );
 		$quiz_item['school_name']      = $this->school->post_title;
 		$quiz_item['class']            = get_user_meta( $quiz_attempts['user_id'], 'class' , true );
 		$quiz_item['section']          = get_user_meta( $quiz_attempts['user_id'], 'section' , true );
@@ -169,7 +169,7 @@ class Assigment {
 
 		$quiz_item['quiz_id']    = $quiz_attempts['ID'];
 		$quiz_item['quiz_name']  = $quiz_attempts['post_title'];
-		$quiz_item['grade']      = $quiz_attempts['grade'];
+		$quiz_item['grade']      = Arr::get( $quiz_attempts, 'grade', 'N/A' );
 		$quiz_item['status']     = $quiz_attempts['status'];
 		$quiz_item['start_date'] = $quiz_attempts['created'];
 		$quiz_item['updated']    = $quiz_attempts['updated'];

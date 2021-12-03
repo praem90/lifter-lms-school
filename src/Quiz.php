@@ -147,7 +147,7 @@ class Quiz {
 		$quiz_item['student_email'] = $student->user_email;
 
 		$quiz_item['school_system_id'] = $this->school->ID;
-		$quiz_item['school_manual_id'] = get_post_meta( $this->school, 'school_manual_id', true );
+		$quiz_item['school_manual_id'] = get_post_meta( $this->school, 'school_id_manual', true );
 		$quiz_item['school_name']      = $this->school->post_title;
 		$quiz_item['class']            = get_user_meta( $quiz_attempts['student_id'], 'class' , true );
 		$quiz_item['section']          = get_user_meta( $quiz_attempts['student_id'], 'section' , true );

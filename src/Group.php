@@ -60,6 +60,7 @@ class Group {
 			'name'           => $row['post_title'],
 			'class'          => isset( $row['class'] ) ? $row['class'] : '',
 			'section'        => isset( $row['section'] ) ? $row['section'] : '',
+			'membership_id'  => ( isset( $row['membership'] ) ) ? $row['membership']->ID : 'N/A',
 			'membership'     => ( isset( $row['membership'] ) ) ? $row['membership']->post_title : 'N/A',
 			'courses_count'  => $row['courses_count'],
 			'students_count' => $row['students_count'],
