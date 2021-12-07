@@ -23,3 +23,13 @@
     display: block !important;
 }
 
+.llms-lesson-sidebar-handler {
+    padding: 5px;
+    background: #444;
+    display: inline-block;
+    color: #fff;
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(50%);
+}

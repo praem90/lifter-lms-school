@@ -70,10 +70,13 @@ class School {
 			'city'             => Arr::get( $row, 'city' ),
 			'state'            => Arr::get( $row, 'state' ),
 			'pincode'          => Arr::get( $row, 'pincode' ),
+			'status'          => Arr::get( $row, 'status', 'N/A' ),
+			'remarks'          => Arr::get( $row, 'remarks', 'N/A' ),
 			'students_count'   => Arr::get( $row, 'students_count' ),
 			'groups_count'     => Arr::get( $row, 'groups_count' ),
 			'membership_count' => Arr::get( $row, 'groups_count' ),
 			'date'             => Arr::get( $row, 'post_date' ),
+			'updated'             => Arr::get( $row, 'post_modified' ),
 		);
 
 		return $row;
@@ -108,7 +111,9 @@ class School {
 	}
 
 	public function get_query() {
-		$query = wpFluent()->table( 'posts' )->where( 'post_type', 'llms_school' )->where( 'post_status', 'publish' );
+
+				$query = wpFluent()->table( 'posts' )->where('post_type', 'llms_school')->where('post_status', 'publish');
+
 
 		return $query;
 	}
@@ -121,9 +126,10 @@ class School {
 	public function get_meta( &$groups ) {
 		$query = wpFluent()->table( 'postmeta' )->whereIn( 'post_id', Arr::pluck( $groups, 'ID' ) );
 
-		$query->select( 'school_id', 'meta_key', 'meta_value' );
+		$query->select( 'post_id', 'meta_key', 'meta_value' );
 
-		$query->whereIn( 'meta_key', array( 'contact_email', 'contact_name', 'school_id_manual', 'contact_mobile', 'line_1', 'line_2', 'city', 'state', 'pincode' ) );
+		$query->whereIn( 'meta_key', array( 'contact_email', 'contact_name', 'contact_mobile', 'status', 'remarks', 'school_id_manual', 'line_1', 'line_2', 'city', 'state', 'pincode' ) );
+
 
 		$meta = $query->get();
 
@@ -133,8 +139,8 @@ class School {
 	}
 
 	public function get_school( &$groups ) {
-		$role_query = Student::get_student_role_query();
-		$students   = wpFluent()->table( 'usermeta' )
+				$role_query = Student::get_student_role_query();
+		$students = wpFluent()->table( 'usermeta' )
 			->where( 'meta_key', 'school' )
 			->whereIn( 'meta_value', Arr::pluck( $groups, 'ID' ) )
 			->where( wpFluent()->raw( ' user_id in (' . $role_query->getQuery()->getRawSql() . ')' ) )
@@ -158,17 +164,14 @@ class School {
 
 	public function get_course_group_membership_count( &$schools ) {
 		$groups = wpFluent()->table( 'posts' )->where( 'post_type', '=', 'llms_group' )
-			->join(
-				'postmeta',
-				function ( $table ) use ( $schools ) {
-					$table->on( 'postmeta.post_id', '=', 'posts.ID' );
-					$table->where( 'postmeta.meta_key', '=', 'school' );
-					$table->whereIn( 'postmeta.meta_value', Arr::pluck( $schools, 'ID' ) );
-				}
-			)->groupBy( 'postmeta.meta_value' )
-			->select( 'postmeta.meta_value', wpFluent()->raw( 'count(postmeta.post_id) as count' ) );
+			->join('postmeta', 'postmeta.post_id', '=', 'posts.ID' )
+			->groupBy( 'postmeta.meta_value' )
+			->select( 'meta_value', wpFluent()->raw( 'count(post_id) as count' ) );
+		
+					$groups->where( 'postmeta.meta_key', '=', 'school' );
+					$groups->whereIn( 'postmeta.meta_value', Arr::pluck( $schools, 'ID' ) );
 
-		$groups = collect( $groups )->pluck( 'count', 'meta_value' );
+		$groups = collect( $groups->get() )->pluck( 'count', 'meta_value' );
 
 		$schools = array_map(
 			function ( $school ) use ( $groups ) {

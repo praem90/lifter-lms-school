@@ -44,45 +44,116 @@ class LifterMt {
 		add_filter( 'llms_student_dashboard_default_tab', array( $this, 'get_school_admin_defaul_tab' ), 100 );
 
 		add_filter( 'views_edit-llms_school', array( $this, 'add_school_export_button' ), 100 );
-
 		add_filter( 'woocommerce_billing_fields' , array( $this, 'change_company_name_to_organisation' ) );
 
 		add_filter(
 			'gamipress_leaderboards_leaderboard_pre_query_vars',
 			function( $query_vars ) {
-			$query_vars['items_per_page'] = 10;
-			$query_vars['max_items']      = 1000;
-			return $query_vars;
+				$query_vars['items_per_page'] = 10;
+				$query_vars['max_items']      = 1000;
+				return $query_vars;
 			}
 		);
 
+		add_filter( 'wp_new_user_notification_email', array( $this, 'update_reg_email_content' ), 30, 2 );
 
-		add_filter( 'wp_new_user_notification_email', array( $this, 'update_reg_email_content' ) );
+		remove_all_actions( 'lifterlms_student_dashboard_index' );
 
+		add_action( 'lifterlms_student_dashboard_index', 'lifterlms_template_student_dashboard_my_courses', 10 );
 		add_action(
 			'init',
 			function() {
-				remove_action( 'lifterlms_student_dashboard_index', 'lifterlms_template_student_dashboard_my_achievements' );
-				remove_action( 'lifterlms_student_dashboard_index', 'lifterlms_template_student_dashboard_my_memberships' );
-
-				if ( is_user_logged_in() && ! in_array( 'student', wp_get_current_user()->roles ) ) {
-					remove_action( 'lifterlms_student_dashboard_index', 'lifterlms_template_student_dashboard_my_courses', 10 );
+				if ( is_user_logged_in() && in_array( 'student', wp_get_current_user()->roles ) ) {
+					add_action( 'lifterlms_student_dashboard_index', 'lifterlms_template_student_dashboard_my_certificates', 10 );
 				}
 			}
 		);
+
+		add_action(
+			'lifterlms_single_lesson_before_summary',
+			function () {
+			echo '<style>
+.llms-lesson-sidebar-handler {
+    padding: 5px;
+    background: #444;
+    display: inline-block;
+    color: #fff;
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(50%);
+	cursor: pointer;
+	z-index: 100;
+}</style>';
+
+			echo '<script>(function (){ jQuery(document).on("click", ".llms-lesson-sidebar-handler", function (e) { e.preventDefault();console.log("Test");  jQuery(".lifter-topic-sidebar-wrapper").toggleClass("lms-topic-sidebar-close");
+			var icon = jQuery(this).find("i");
+			if (jQuery(".lifter-topic-sidebar-wrapper").hasClass("lms-topic-sidebar-close") ){
+			icon.removeClass("fa-chevron-left");
+			icon.addClass("fa-chevron-right");
+			jQuery(this).attr("title", "Show Sidebar");
+			} else {
+			jQuery(this).attr("title", "Hide Sidebar");
+			icon.removeClass("fa-chevron-right");
+			icon.addClass("fa-chevron-left");
+			}
+			});
+			})()</script>';
+			echo '<div title="Show Sidebar" class="llms-lesson-sidebar-handler"><i class="fa fa-chevron-right"></i></div>';
+			},
+			1000
+		);
+
+
+		add_action(
+			'elementor/widget/render_content',
+			function( $content, $widget ) {
+				if ( 'tp-wp-login-register' === $widget->get_name() ) {
+
+					$content .= '<script>jQuery(document).ready(function () {
+	   		jQuery(".tp-l-lr-password .tp-form-controls").append(\'<span class="llms-show-or-hide-pass"><i class="fa fa-eye" aria-hidden="true"></i></span>\');
+			jQuery(document).on("click", ".llms-show-or-hide-pass", function (e) {
+				e.preventDefault();
+				var login_password = jQuery(this).parent().find("input");
+				login_password.attr("type", login_password.attr("type") === "password" ? "text" : "password");
+
+			});
+	   });</script>';
+
+					$content .= '<style>
+	   		.tp-form-controls {
+				position: relative;
+			}
+	   		.llms-show-or-hide-pass {
+				position: absolute;
+				right: 0;
+				padding: 0 5px;
+			}
+	   </style>';
+
+				}
+
+			return $content;
+			},
+			10,
+			2
+		);
+
+
 	}
 
 	public function update_reg_email_content( $email, $user ) {
+
 		$key = get_password_reset_key( $user );
 		if ( is_wp_error( $key ) ) {
 			return;
 		}
-		$message  = sprintf( __( 'Username: %s' ), $user->user_login ) . '<br />';
-		$message .= __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
+		$message  = '<p>Welcome to D-learn! We hope you enjoy your time with us.</p><br />';
+		$message .= sprintf( __( 'Username: %s' ), $user->user_login ) . '<br />';
+	$message     .= __( 'To set your password,  click on the button below:' ) . "\r\n\r\n";
 		$url      = network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user->user_login ), 'login' );
-		$message .= '<a href="' . $url . '" style="text-align: right; padding: 50px 0 30px; font-family: sans-serif; font-weight: normal; color: rgba(103, 108, 251, 1); font-size: 14px">Click here</a>' . "\r\n\r\n";
-
-		$email['message'] = $message;
+	$message     .= '<p><a href="' . $url . '" style="background-color: rgba(248, 149, 79, 1) !important; color: rgba(0, 0, 0, 1) !important; display: inline-block !important; padding: 10px 15px !important; text-decoration: none !important">Click here</a></p>' . "\r\n\r\n";
+$email['message'] = $message;
 
 		return $email;
 	}
@@ -93,7 +164,8 @@ class LifterMt {
 	}
 
 	public function add_school_export_button( $views ) {
-		$views['export'] = '<a href="' . $this->get_school_details_url( 2, array( 'tab' => 'llms_schools_export' ) ) . '">Export</a>';
+
+		$views['export'] = '<a href="' . $this->get_school_details_url( 1, array( 'tab' => 'llms_schools_export' ) ) . '">Export</a>';
 
 		return $views;
 	}
@@ -114,6 +186,8 @@ class LifterMt {
 
 	public function add_my_school_endpoint( $menu_items ) {
 		unset( $menu_items['orders'] );
+		unset( $menu_items['notifications'] );
+
 		if ( $this->is_school_student() ) {
 			$menu_items['orders'] = array(
 				'content'  => array( $this, 'custom_account_orders' ),
@@ -128,7 +202,6 @@ class LifterMt {
 		}
 		$new_items                = array();
 		$new_items['view-groups'] = $menu_items['view-groups'];
-		$new_items['orders']      = $menu_items['orders'];
 
 		$new_items['my-school-reports'] = array(
 			'content'  => __CLASS__ . '::load_page',
@@ -142,9 +215,10 @@ class LifterMt {
 		return $new_items;
 	}
 
-	public function custom_account_orders() {
+	public function custom_account_orders( $current_page = false ) {
 		do_action( 'woocommerce_account_orders_endpoint', '' );
 	}
+
 
 	public function load_acf_head() {
 		global $wp;
@@ -354,11 +428,13 @@ class LifterMt {
 	}
 
 	public function enqueue_admin_scripts() {
-		$page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
+				$page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
 
-		if ( 'llms-course-builder' === $page ) {
+		$blocked_pages = array( 'llms-reporting', 'llms-course-builder' );
+		if ( in_array( $page, $blocked_pages ) ) {
 			return;
 		}
+
 		wp_enqueue_script( 'bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js' , array( 'jquery' ), '5.1.3' );
 		wp_enqueue_style( 'bootstrap5', 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css' , array(), '5.1.3' );
 
@@ -415,6 +491,8 @@ class LifterMt {
 			wp_die( 'School not found' );
 		}
 
+		wp_new_user_notification( 68, null, 'user' );
+
 		include_once dirname( __DIR__ ) . '/resources/views/school.php';
 	}
 
@@ -428,7 +506,7 @@ class LifterMt {
 	}
 
 	public function is_school_student() {
-		$school_student_role = apply_filters( 'llms_school_student_role', 'school-student' );
+		$school_student_role = apply_filters( 'llms_school_student_role', 'student' );
 		if ( in_array( $school_student_role, wp_get_current_user()->roles ) ) {
 			return true;
 		}

@@ -200,8 +200,8 @@ class Course {
 		$student_course['course_name']               = $student_course['post_title'];
 		$student_course['course_status']             = llms_get_enrollment_status_name( $student->get_enrollment_status( $student_course['ID'] ) );
 		$student_course['course_enrollment_updated'] = $student->get_enrollment_date( $student_course['ID'], 'updated' );
-		$student_course['course_completed %']          = $student->get_completion_date( $student_course['ID'] );
-		$student_course['course_progress']           = $student->get_progress( $student_course['ID'] );
+		$student_course['course_completed']          = $student->get_completion_date( $student_course['ID'] );
+		$student_course['course_progress %']           = $student->get_progress( $student_course['ID'] );
 		$student_course['course_grade']              = $student->get_grade( $student_course['ID'] );
 		unset($student_course['group']);
 		unset($student_course['membership']);
@@ -210,5 +210,3 @@ class Course {
 	}
 
 }
-
-

@@ -57,10 +57,10 @@ class Group {
 	public function map_item( $row ) {
 		$row = array(
 			'ID'             => $row['ID'],
-			'name'           => $row['post_title'],
+			'group_name'           => $row['post_title'],
 			'class'          => isset( $row['class'] ) ? $row['class'] : '',
 			'section'        => isset( $row['section'] ) ? $row['section'] : '',
-			'membership_id'  => ( isset( $row['membership'] ) ) ? $row['membership']->ID : 'N/A',
+			'membership_id'     => ( isset( $row['membership'] ) ) ? $row['membership']->ID : 'N/A',
 			'membership'     => ( isset( $row['membership'] ) ) ? $row['membership']->post_title : 'N/A',
 			'courses_count'  => $row['courses_count'],
 			'students_count' => $row['students_count'],
@@ -76,13 +76,14 @@ class Group {
 		if ( count( $groups ) === 0 ) {
 			return $groups;
 		}
-		$groups = array_map(
+				$groups = array_map(
 			function ( $group ) {
 				$group['guid'] = get_edit_post_link( $group['ID'] );
 				return $group;
 			},
 			$groups
 		);
+
 		$this->get_meta( $groups );
 
 		$this->get_membership( $groups );
@@ -154,7 +155,7 @@ class Group {
 		$memberships = get_posts(
 			array(
 				'post_type' => 'llms_membership',
-				'include'   => Arr::pluck( $groups, '_llms_post_id' ),
+				'include'    => Arr::pluck( $groups, '_llms_post_id' ),
 			)
 		);
 
@@ -162,8 +163,8 @@ class Group {
 			function ( $group ) use ( $memberships ) {
 				$group['membership'] = Arr::first(
 					$memberships,
-					function( $membership ) use ( $group ) {
-						return intval( Arr::get( $group, '_llms_post_id' ) ) === $membership->ID;
+					function( $school ) use ( $group ) {
+						return intval( Arr::get( $group, '_llms_post_id' ) ) === $school->ID;
 					}
 				);
 				return $group;
